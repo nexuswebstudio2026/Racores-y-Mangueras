@@ -72,22 +72,22 @@ export default function HosesSection({ onAddToQuote, onOpenConsultation }: Hoses
   };
 
   return (
-    <section id="mangueras" className="py-20 md:py-28 bg-[#0c0f17] border-t border-slate-800/80 relative">
+    <section id="mangueras" className="py-20 md:py-28 bg-[#060e1f] border-t border-[#122e66] relative">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider mb-4">
-            <Gauge className="w-3.5 h-3.5 text-amber-500" />
-            <span>Guía Técnica Especializada</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#0b2559]/70 border border-[#ffd200]/30 text-[#ffd200] text-xs font-bold uppercase tracking-wider mb-4">
+            <Gauge className="w-3.5 h-3.5 text-[#ffd200]" />
+            <span>Guía Técnica Especializada • Calidad y Servicio</span>
           </div>
           <h2 className="font-heading font-black text-3xl sm:text-4xl md:text-5xl text-white tracking-tight">
             MANGUERAS HIDRÁULICAS <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ffd200] via-[#ffe043] to-[#f5b800]">
               Y DE FLUIDOS INDUSTRIALES
             </span>
           </h2>
-          <p className="text-slate-400 text-base sm:text-lg mt-4 leading-relaxed">
-            Ensambladas con terminales originales y prensadas bajo estrictas normas internacionales <strong>SAE 100, DIN EN 853, DIN EN 856 y FMVSS 106</strong>. Resistencia probada hasta 700 bar (10.150 PSI).
+          <p className="text-slate-300 text-base sm:text-lg mt-4 leading-relaxed">
+            Ensambladas con terminales originales y prensadas bajo estrictas normas internacionales <strong>SAE 100, DIN EN 853, DIN EN 856 y FMVSS 106</strong>. Resistencia probada hasta 700 bar (10.150 PSI) con garantía total.
           </p>
         </div>
 

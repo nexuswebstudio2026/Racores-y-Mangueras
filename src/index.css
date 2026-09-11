@@ -5,13 +5,26 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-industrial-black: #0A0D12;
-  --color-industrial-dark: #12161F;
-  --color-industrial-charcoal: #1E232E;
-  --color-industrial-slate: #2C3444;
-  --color-industrial-border: #2A3242;
-  --color-industrial-yellow: #F59E0B;
-  --color-industrial-amber: #D97706;
+  --color-brand-navy: #0B2559;
+  --color-brand-navy-deep: #060E1F;
+  --color-brand-navy-mid: #0D2E6E;
+  --color-brand-navy-light: #16439E;
+  --color-brand-yellow: #FFD200;
+  --color-brand-gold: #F5B800;
+  --color-brand-gold-hover: #FFE043;
+
+  --color-industrial-black: #060E1F;
+  --color-industrial-dark: #0A1630;
+  --color-industrial-charcoal: #0F2044;
+  --color-industrial-slate: #1A3266;
+  --color-industrial-border: #1E3A75;
+  --color-industrial-yellow: #FFD200;
+  --color-industrial-amber: #F5B800;
+}
+
+::selection {
+  background-color: #FFD200;
+  color: #060E1F;
 }
 
 /* Custom scrollbar and animations */
@@ -19,12 +32,12 @@
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0A0D12;
+  background: #060E1F;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2A3242;
+  background: #1E3A75;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #F59E0B;
+  background: #FFD200;
 }

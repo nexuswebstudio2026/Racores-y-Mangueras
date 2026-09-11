@@ -13,12 +13,36 @@ export function getAdminUsers(): AdminUser[] {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialAdminUsers));
       return initialAdminUsers;
     }
-    const parsed = JSON.parse(raw);
+    const parsed: AdminUser[] = JSON.parse(raw);
     if (!Array.isArray(parsed) || parsed.length === 0) {
       localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialAdminUsers));
       return initialAdminUsers;
     }
-    return parsed;
+
+    // Merge system initial users to guarantee updated roles & permissions
+    const merged = initialAdminUsers.map((initUser) => {
+      const existing = parsed.find((p) => p.id === initUser.id);
+      if (existing) {
+        return {
+          ...initUser,
+          pin: existing.pin || initUser.pin,
+          active: existing.active !== undefined ? existing.active : initUser.active,
+          phone: existing.phone || initUser.phone,
+          email: existing.email || initUser.email,
+          lastLogin: existing.lastLogin || initUser.lastLogin,
+        };
+      }
+      return initUser;
+    });
+
+    // Also include any custom users added by the owner
+    const customUsers = parsed.filter(
+      (p) => !initialAdminUsers.some((init) => init.id === p.id)
+    );
+
+    const result = [...merged, ...customUsers];
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(result));
+    return result;
   } catch {
     return initialAdminUsers;
   }
@@ -32,7 +56,10 @@ export function getCurrentUser(): AdminUser | null {
   try {
     const raw = localStorage.getItem(SESSION_STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed: AdminUser = JSON.parse(raw);
+    const users = getAdminUsers();
+    const fresh = users.find((u) => u.id === parsed.id);
+    return fresh || parsed;
   } catch {
     return null;
   }
@@ -122,12 +149,15 @@ export function createAdminUser(newUser: Omit<AdminUser, 'id'>): AdminUser {
   const user: AdminUser = {
     ...newUser,
     id,
-    permissions: {
-      allAccess: true,
-      manageUsers: true,
+    permissions: newUser.permissions || {
+      allAccess: false,
+      canDeleteAll: false,
+      manageUsers: false,
       manageQuotes: true,
-      manageInventory: true,
-      accessGoogleSheets: true,
+      manageAccounting: false,
+      manageInventory: false,
+      manageLogistics: false,
+      accessGoogleSheets: false,
     },
   };
   users.push(user);
@@ -252,7 +282,9 @@ export async function syncUsersToGoogleSheets(): Promise<boolean> {
     u.title,
     u.phone,
     u.email,
-    'Acceso Total Administrativo (100%)',
+    u.isOwner
+      ? 'Dueño & Administrador (Acceso Total CRUD: Crear, Leer, Modificar, Eliminar)'
+      : u.role,
     u.active ? 'Activo' : 'Inactivo',
     u.lastLogin || 'No registrado',
   ]);

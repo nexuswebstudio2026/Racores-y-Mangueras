@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { AdminUser } from '../types';
 import { getAdminUsers, loginAdminUser } from '../services/userService';
+import Logo from './Logo';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -52,34 +53,34 @@ export default function AdminLoginModal({ isOpen, onClose, onLoginSuccess }: Adm
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="bg-[#0f131d] border border-slate-700/80 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
+        className="bg-[#081224] border-2 border-[#163878] w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
         role="dialog"
         aria-modal="true"
       >
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-[#141b2b] via-[#101420] to-[#141b2b]">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-950/40">
-              <ShieldCheck className="w-7 h-7" />
+        <div className="p-5 sm:p-6 border-b border-[#122e66] flex items-center justify-between bg-gradient-to-r from-[#0b2046] via-[#08152e] to-[#0b2046]">
+          <div className="flex items-center gap-3.5">
+            <div className="p-1 rounded-full bg-[#0b2559] border border-[#ffd200]/40 shadow-lg">
+              <Logo size="sm" variant="badge" invertSloganForDark={true} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white font-serif">
+                <h2 className="text-lg sm:text-xl font-bold text-white font-heading tracking-tight">
                   Acceso Administrativo
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                  Equipo Autorizado
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#ffd200]/15 text-[#ffd200] border border-[#ffd200]/40">
+                  Calidad y Servicio
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Panel de control para administradores de Racores y Mangueras de Nariño
+              <p className="text-xs text-slate-300 mt-0.5">
+                Panel de control y operaciones de Racores y Mangueras de Nariño
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-slate-300 hover:text-white p-2 rounded-lg hover:bg-[#0e2754] transition-colors"
             aria-label="Cerrar ventana"
           >
             <X className="w-5 h-5" />

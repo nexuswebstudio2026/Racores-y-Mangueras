@@ -4,13 +4,13 @@ import {
   Mail, 
   MapPin, 
   Clock, 
-  Wrench, 
   ArrowUp, 
   ShieldCheck, 
-  Heart,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckCircle2
 } from 'lucide-react';
 import { companyInfo } from '../data/companyData';
+import Logo from './Logo';
 
 interface FooterProps {
   onOpenGoogleSheets?: () => void;
@@ -29,32 +29,31 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
   };
 
   return (
-    <footer className="bg-[#07090e] border-t border-slate-800 text-slate-400 text-sm">
+    <footer className="bg-[#050b17] border-t border-[#122e66] text-slate-300 text-sm">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
           {/* Col 1: Brand & Identity */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 p-0.5 shadow-md shadow-amber-500/20">
-                <div className="w-full h-full bg-[#0d1017] rounded-[10px] flex items-center justify-center">
-                  <Wrench className="w-5 h-5 text-amber-400" />
-                </div>
-              </div>
-              <div>
-                <span className="font-heading font-black text-lg tracking-tight text-white block">
-                  RACORES Y MANGUERAS
-                </span>
-                <span className="text-[10px] tracking-[0.2em] font-semibold text-amber-500 uppercase font-heading">
-                  DE NARIÑO • S.A.S.
-                </span>
-              </div>
+            <div className="flex items-center">
+              <Logo 
+                variant="horizontal" 
+                showText={true} 
+                showSlogan={true} 
+                size="md" 
+                invertSloganForDark={true}
+              />
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-300 leading-relaxed max-w-sm">
               Especialistas en soluciones hidráulicas, neumáticas y ensamble de mangueras de alta presión para el transporte pesado, maquinaria amarilla y sector agroindustrial en Pasto, Nariño.
             </p>
 
-            <div className="pt-2 text-xs font-mono text-slate-500 space-y-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0b1d3d] border border-[#ffd200]/30 text-xs text-[#ffd200] font-bold">
+              <CheckCircle2 className="w-4 h-4 text-[#ffd200]" />
+              <span>Garantía Oficial de Calidad y Servicio</span>
+            </div>
+
+            <div className="pt-2 text-xs font-mono text-slate-400 space-y-1">
               <p>NIT: {companyInfo.nit}</p>
               <p>Fundada el 17 de junio de 2010 • Pasto, Nariño</p>
             </div>
@@ -62,7 +61,7 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
 
           {/* Col 2: Quick Links */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white uppercase tracking-wider mb-4">
+            <h4 className="font-heading font-bold text-sm text-white uppercase tracking-wider mb-4 border-b border-[#14326d] pb-1.5">
               Navegación
             </h4>
             <ul className="space-y-2 text-xs">
@@ -79,7 +78,7 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
                   <a
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className="hover:text-amber-400 transition-colors"
+                    className="hover:text-[#ffd200] transition-colors"
                   >
                     {link.label}
                   </a>
@@ -90,10 +89,10 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
 
           {/* Col 3: Categorías */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white uppercase tracking-wider mb-4">
+            <h4 className="font-heading font-bold text-sm text-white uppercase tracking-wider mb-4 border-b border-[#14326d] pb-1.5">
               Líneas de Producto
             </h4>
-            <ul className="space-y-2 text-xs text-slate-400">
+            <ul className="space-y-2 text-xs text-slate-300">
               <li>Mangueras SAE 100R2 hasta R15</li>
               <li>Racores de Bronce (B2 a B102)</li>
               <li>Acoples Rápidos Hidráulicos</li>
@@ -107,18 +106,18 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
 
           {/* Col 4: Contact & Emergency */}
           <div>
-            <h4 className="font-heading font-bold text-sm text-white uppercase tracking-wider mb-4">
+            <h4 className="font-heading font-bold text-sm text-white uppercase tracking-wider mb-4 border-b border-[#14326d] pb-1.5">
               Atención en Taller
             </h4>
             <div className="space-y-3 text-xs">
-              <p className="text-slate-300">
+              <p className="text-slate-200">
                 {companyInfo.address}
                 <br />
                 {companyInfo.city}
               </p>
 
               <div className="pt-2 font-mono space-y-1">
-                <p className="text-amber-400 font-bold">
+                <p className="text-[#ffd200] font-bold text-sm">
                   {companyInfo.phoneMain}
                 </p>
                 <p className="text-slate-300">
@@ -135,7 +134,7 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="mt-12 pt-8 border-t border-[#122e66] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
           <p>
             © {new Date().getFullYear()} {companyInfo.fullName}. Todos los derechos reservados.
           </p>
@@ -144,9 +143,9 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
             {onOpenAdmin && (
               <button
                 onClick={onOpenAdmin}
-                className="flex items-center gap-1.5 hover:text-amber-400 text-slate-400 transition-colors p-2 bg-slate-900/80 hover:bg-slate-800 rounded-lg border border-slate-800 hover:border-amber-500/30 cursor-pointer text-xs"
+                className="flex items-center gap-1.5 hover:text-[#ffd200] text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-[#0e244d] rounded-lg border border-[#163673] hover:border-[#ffd200]/40 cursor-pointer text-xs font-semibold"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#ffd200]" />
                 <span>Panel Administrativo (Equipo)</span>
               </button>
             )}
@@ -154,7 +153,7 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
             {onOpenGoogleSheets && (
               <button
                 onClick={onOpenGoogleSheets}
-                className="flex items-center gap-1.5 hover:text-emerald-400 text-slate-400 transition-colors p-2 bg-slate-900/80 hover:bg-emerald-950/40 rounded-lg border border-slate-800 hover:border-emerald-500/30 cursor-pointer text-xs"
+                className="flex items-center gap-1.5 hover:text-emerald-300 text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-emerald-950/50 rounded-lg border border-[#163673] hover:border-emerald-500/40 cursor-pointer text-xs font-semibold"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Base de Datos Google Sheets</span>
@@ -163,11 +162,11 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
 
             <button
               onClick={scrollToTop}
-              className="flex items-center gap-2 hover:text-amber-400 transition-colors p-2 bg-slate-900 rounded-lg border border-slate-800 cursor-pointer"
+              className="flex items-center gap-2 hover:text-[#ffd200] text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-[#0e244d] rounded-lg border border-[#163673] cursor-pointer"
               aria-label="Volver al inicio"
             >
               <span>Volver arriba</span>
-              <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
+              <ArrowUp className="w-3.5 h-3.5 text-[#ffd200]" />
             </button>
           </div>
         </div>

@@ -107,11 +107,42 @@ export interface AdminUser {
   lastLogin?: string;
   permissions: {
     allAccess: boolean;
+    canDeleteAll: boolean;
     manageUsers: boolean;
     manageQuotes: boolean;
+    manageAccounting: boolean;
     manageInventory: boolean;
+    manageLogistics: boolean;
     accessGoogleSheets: boolean;
   };
+}
+
+export interface AccountingRecord {
+  id: string;
+  date: string;
+  invoiceNumber: string;
+  clientName: string;
+  concept: string;
+  amount: number;
+  paymentMethod: 'Transferencia Bancolombia' | 'Efectivo Mostrador' | 'Crédito 30 días' | 'Nequi / Daviplata';
+  status: 'Cobrado' | 'Pendiente' | 'Anulado';
+  recordedBy: string;
+  notes?: string;
+}
+
+export interface LogisticsOrderRecord {
+  id: string;
+  orderDate: string;
+  clientName: string;
+  destinationCity: string;
+  carrier: string;
+  trackingNumber: string;
+  itemsSummary: string;
+  status: 'En Alistamiento' | 'Despachado' | 'En Tránsito' | 'Entregado';
+  estimatedDelivery: string;
+  managedBy: string;
+  shippingCost?: number;
+  notes?: string;
 }
 
 export interface ActivityLogItem {
@@ -121,5 +152,5 @@ export interface ActivityLogItem {
   userName: string;
   action: string;
   details: string;
-  category: 'auth' | 'quotes' | 'inventory' | 'users' | 'sheets';
+  category: 'auth' | 'quotes' | 'inventory' | 'users' | 'sheets' | 'accounting' | 'logistics';
 }
