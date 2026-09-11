@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { 
   Phone, 
   Mail, 
@@ -34,7 +34,7 @@ export default function Contact({ quoteItems, onRemoveQuoteItem, onClearQuote }:
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmitWeb = (e: React.FormEvent) => {
+  const handleSubmitWeb = (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
   };
