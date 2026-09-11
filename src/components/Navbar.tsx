@@ -8,14 +8,18 @@ import {
   ShoppingCart, 
   ArrowUpRight,
   ShieldCheck,
-  Wrench
+  Wrench,
+  FileSpreadsheet
 } from 'lucide-react';
 import { companyInfo } from '../data/companyData';
-import { QuoteCartItem } from '../types';
+import { QuoteCartItem, AdminUser } from '../types';
 
 interface NavbarProps {
   quoteItems: QuoteCartItem[];
   onOpenQuote: () => void;
+  onOpenGoogleSheets?: () => void;
+  onOpenAdmin?: () => void;
+  currentAdminUser?: AdminUser | null;
 }
 
 const navLinks = [
@@ -28,7 +32,13 @@ const navLinks = [
   { label: 'Contacto', href: '#contacto' },
 ];
 
-export default function Navbar({ quoteItems, onOpenQuote }: NavbarProps) {
+export default function Navbar({ 
+  quoteItems, 
+  onOpenQuote, 
+  onOpenGoogleSheets,
+  onOpenAdmin,
+  currentAdminUser
+}: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isOpenNow, setIsOpenNow] = useState(true);
@@ -154,7 +164,41 @@ export default function Navbar({ quoteItems, onOpenQuote }: NavbarProps) {
           </div>
 
           {/* Actions & Quotation Cart Trigger */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                className="bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-amber-400 p-2 sm:px-3 sm:py-2.5 rounded-xl border border-slate-700 hover:border-amber-500/50 transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm"
+                title="Acceso al Panel Administrativo"
+                id="admin-panel-nav-btn"
+              >
+                {currentAdminUser ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                    <span className="hidden lg:inline text-white font-bold">{currentAdminUser.name.split(' ')[0]}</span>
+                    <span className="hidden sm:inline text-amber-400 text-[10px] bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">Admin</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <span className="hidden md:inline">Panel Admin</span>
+                  </>
+                )}
+              </button>
+            )}
+
+            {onOpenGoogleSheets && (
+              <button
+                onClick={onOpenGoogleSheets}
+                className="bg-emerald-950/50 hover:bg-emerald-900/70 text-emerald-400 hover:text-emerald-300 p-2 sm:px-3 sm:py-2.5 rounded-xl border border-emerald-500/30 transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm shadow-emerald-950/50"
+                title="Base de Datos en Google Sheets"
+                id="google-sheets-nav-btn"
+              >
+                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                <span className="hidden md:inline">Google Sheets</span>
+              </button>
+            )}
+
             <button
               onClick={onOpenQuote}
               className="relative bg-slate-800/80 hover:bg-slate-700 text-slate-100 hover:text-amber-400 p-2.5 rounded-xl border border-slate-700 transition-all flex items-center gap-2"
@@ -208,6 +252,44 @@ export default function Navbar({ quoteItems, onOpenQuote }: NavbarProps) {
             </div>
 
             <div className="pt-4 border-t border-slate-800 space-y-3">
+              {onOpenAdmin && (
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    onOpenAdmin();
+                  }}
+                  className="w-full flex items-center justify-between bg-[#151c2d] border border-amber-500/30 px-4 py-3 rounded-xl text-amber-300 font-medium"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-amber-400" />
+                    <span>
+                      {currentAdminUser ? `Panel Admin (${currentAdminUser.name.split(' ')[0]})` : 'Panel Administrativo'}
+                    </span>
+                  </span>
+                  <span className="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold">
+                    Acceso Total
+                  </span>
+                </button>
+              )}
+
+              {onOpenGoogleSheets && (
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    onOpenGoogleSheets();
+                  }}
+                  className="w-full flex items-center justify-between bg-emerald-950/40 border border-emerald-500/30 px-4 py-3 rounded-xl text-emerald-300 font-medium"
+                >
+                  <span className="flex items-center gap-2">
+                    <FileSpreadsheet className="w-5 h-5 text-emerald-400" />
+                    <span>Base de Datos Google Sheets</span>
+                  </span>
+                  <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-semibold">
+                    Conectar
+                  </span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   setMobileOpen(false);

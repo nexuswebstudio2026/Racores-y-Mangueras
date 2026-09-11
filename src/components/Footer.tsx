@@ -7,11 +7,17 @@ import {
   Wrench, 
   ArrowUp, 
   ShieldCheck, 
-  Heart 
+  Heart,
+  FileSpreadsheet
 } from 'lucide-react';
 import { companyInfo } from '../data/companyData';
 
-export default function Footer() {
+interface FooterProps {
+  onOpenGoogleSheets?: () => void;
+  onOpenAdmin?: () => void;
+}
+
+export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -134,14 +140,36 @@ export default function Footer() {
             © {new Date().getFullYear()} {companyInfo.fullName}. Todos los derechos reservados.
           </p>
 
-          <button
-            onClick={scrollToTop}
-            className="flex items-center gap-2 hover:text-amber-400 transition-colors p-2 bg-slate-900 rounded-lg border border-slate-800 cursor-pointer"
-            aria-label="Volver al inicio"
-          >
-            <span>Volver arriba</span>
-            <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
-          </button>
+          <div className="flex items-center gap-3">
+            {onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                className="flex items-center gap-1.5 hover:text-amber-400 text-slate-400 transition-colors p-2 bg-slate-900/80 hover:bg-slate-800 rounded-lg border border-slate-800 hover:border-amber-500/30 cursor-pointer text-xs"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                <span>Panel Administrativo (Equipo)</span>
+              </button>
+            )}
+
+            {onOpenGoogleSheets && (
+              <button
+                onClick={onOpenGoogleSheets}
+                className="flex items-center gap-1.5 hover:text-emerald-400 text-slate-400 transition-colors p-2 bg-slate-900/80 hover:bg-emerald-950/40 rounded-lg border border-slate-800 hover:border-emerald-500/30 cursor-pointer text-xs"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Base de Datos Google Sheets</span>
+              </button>
+            )}
+
+            <button
+              onClick={scrollToTop}
+              className="flex items-center gap-2 hover:text-amber-400 transition-colors p-2 bg-slate-900 rounded-lg border border-slate-800 cursor-pointer"
+              aria-label="Volver al inicio"
+            >
+              <span>Volver arriba</span>
+              <ArrowUp className="w-3.5 h-3.5 text-amber-500" />
+            </button>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -12,13 +12,51 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import QuoteDrawer from './components/QuoteDrawer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
-import { Product, QuoteCartItem } from './types';
+import GoogleSheetsModal from './components/GoogleSheetsModal';
+import AdminLoginModal from './components/AdminLoginModal';
+import AdminPanelModal from './components/AdminPanelModal';
+import { Product, QuoteCartItem, AdminUser } from './types';
+import { getCurrentUser, logoutAdminUser } from './services/userService';
 import { Check, ShoppingBag } from 'lucide-react';
 
 export default function App() {
   const [quoteItems, setQuoteItems] = useState<QuoteCartItem[]>([]);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
+  const [isSheetsOpen, setIsSheetsOpen] = useState(false);
+  const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser | null>(null);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentAdminUser(getCurrentUser());
+  }, []);
+
+  const handleOpenAdmin = () => {
+    if (currentAdminUser) {
+      setIsAdminPanelOpen(true);
+    } else {
+      setIsAdminLoginOpen(true);
+    }
+  };
+
+  const handleLoginSuccess = (user: AdminUser) => {
+    setCurrentAdminUser(user);
+    setIsAdminPanelOpen(true);
+    showToast(`Bienvenido al panel, ${user.name}`);
+  };
+
+  const handleSwitchUser = () => {
+    setIsAdminPanelOpen(false);
+    setIsAdminLoginOpen(true);
+  };
+
+  const handleLogout = () => {
+    logoutAdminUser();
+    setCurrentAdminUser(null);
+    setIsAdminPanelOpen(false);
+    showToast('Sesión administrativa cerrada');
+  };
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -92,6 +130,9 @@ export default function App() {
       <Navbar
         quoteItems={quoteItems}
         onOpenQuote={() => setIsQuoteOpen(true)}
+        onOpenGoogleSheets={() => setIsSheetsOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
+        currentAdminUser={currentAdminUser}
       />
 
       {/* Main Content Sections */}
@@ -117,11 +158,15 @@ export default function App() {
           quoteItems={quoteItems}
           onRemoveQuoteItem={handleRemoveQuoteItem}
           onClearQuote={handleClearQuote}
+          onOpenGoogleSheets={() => setIsSheetsOpen(true)}
         />
       </main>
 
       {/* Footer */}
-      <Footer />
+      <Footer 
+        onOpenGoogleSheets={() => setIsSheetsOpen(true)} 
+        onOpenAdmin={handleOpenAdmin}
+      />
 
       {/* Interactive Quote Drawer */}
       <QuoteDrawer
@@ -133,6 +178,32 @@ export default function App() {
         onClearQuote={handleClearQuote}
         onGoToContact={handleScrollToContact}
       />
+
+      {/* Google Sheets Management Modal */}
+      <GoogleSheetsModal
+        isOpen={isSheetsOpen}
+        onClose={() => setIsSheetsOpen(false)}
+        onNotify={showToast}
+      />
+
+      {/* Admin Login Modal */}
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+
+      {/* Admin Panel Modal */}
+      {currentAdminUser && (
+        <AdminPanelModal
+          isOpen={isAdminPanelOpen}
+          currentUser={currentAdminUser}
+          onClose={() => setIsAdminPanelOpen(false)}
+          onSwitchUser={handleSwitchUser}
+          onLogout={handleLogout}
+          onNotify={showToast}
+        />
+      )}
 
       {/* Floating WhatsApp Action Button */}
       <FloatingWhatsApp />

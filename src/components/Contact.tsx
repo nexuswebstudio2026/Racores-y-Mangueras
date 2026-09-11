@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { 
   Phone, 
   Mail, 
@@ -10,18 +10,27 @@ import {
   Sparkles,
   ArrowUpRight,
   ShieldCheck,
-  AlertCircle
+  AlertCircle,
+  FileSpreadsheet,
+  ExternalLink
 } from 'lucide-react';
 import { companyInfo } from '../data/companyData';
-import { QuoteCartItem } from '../types';
+import { QuoteCartItem, CustomerQuoteRecord } from '../types';
+import { getStoredSpreadsheet, appendQuoteToSpreadsheet, requestGoogleAccessToken } from '../services/googleSheetsService';
 
 interface ContactProps {
   quoteItems: QuoteCartItem[];
   onRemoveQuoteItem: (id: number) => void;
   onClearQuote: () => void;
+  onOpenGoogleSheets?: () => void;
 }
 
-export default function Contact({ quoteItems, onRemoveQuoteItem, onClearQuote }: ContactProps) {
+export default function Contact({ 
+  quoteItems, 
+  onRemoveQuoteItem, 
+  onClearQuote,
+  onOpenGoogleSheets 
+}: ContactProps) {
   const [formData, setFormData] = useState({
     nombre: '',
     telefono: '',
@@ -33,10 +42,52 @@ export default function Contact({ quoteItems, onRemoveQuoteItem, onClearQuote }:
   });
 
   const [submitted, setSubmitted] = useState(false);
+  const [savedToSheets, setSavedToSheets] = useState(false);
+  const [savingToSheets, setSavingToSheets] = useState(false);
+  const [storedDb, setStoredDb] = useState(getStoredSpreadsheet());
 
-  const handleSubmitWeb = (e: FormEvent) => {
+  useEffect(() => {
+    setStoredDb(getStoredSpreadsheet());
+  }, []);
+
+  const handleSubmitWeb = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+
+    const db = getStoredSpreadsheet();
+    if (db) {
+      setSavingToSheets(true);
+      try {
+        const token = await requestGoogleAccessToken();
+        const itemsSummary = quoteItems.length > 0
+          ? quoteItems.map((q) => `${q.quantity}x ${q.product.name}`).join(' | ')
+          : 'Solicitud directa sin carrito';
+        const totalQuantity = quoteItems.reduce((acc, q) => acc + q.quantity, 0) || 1;
+
+        const record: CustomerQuoteRecord = {
+          id: `COT-${Math.floor(1000 + Math.random() * 9000)}`,
+          timestamp: new Date().toLocaleString('es-CO'),
+          clientName: formData.nombre,
+          companyName: formData.empresa,
+          phone: formData.telefono,
+          email: formData.email,
+          city: 'Pasto',
+          sector: formData.sector,
+          requestType: formData.tipoSolicitud,
+          itemsSummary,
+          totalQuantity,
+          notes: formData.mensaje,
+          status: 'Pendiente',
+        };
+
+        await appendQuoteToSpreadsheet(db.spreadsheetId, token, record);
+        setSavedToSheets(true);
+      } catch (err) {
+        console.warn('No se pudo guardar automáticamente en Google Sheets:', err);
+      } finally {
+        setSavingToSheets(false);
+      }
+    }
   };
 
   const handleSendWhatsApp = () => {
@@ -207,6 +258,25 @@ export default function Contact({ quoteItems, onRemoveQuoteItem, onClearQuote }:
                   <p className="text-slate-300 text-sm max-w-md mx-auto leading-relaxed">
                     Gracias por contactar a <strong className="text-white">Racores y Mangueras de Nariño</strong>. Uno de nuestros técnicos revisará tus especificaciones y se comunicará a la brevedad.
                   </p>
+
+                  {savedToSheets && storedDb && (
+                    <div className="bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs py-2 px-4 rounded-xl max-w-md mx-auto flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                        <span>Guardado en Google Sheets ("Cotizaciones de Clientes")</span>
+                      </span>
+                      <a
+                        href={storedDb.spreadsheetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-400 hover:text-emerald-200 underline font-bold flex items-center gap-1"
+                      >
+                        <span>Abrir</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+
                   <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
                       onClick={handleSendWhatsApp}
@@ -216,7 +286,10 @@ export default function Contact({ quoteItems, onRemoveQuoteItem, onClearQuote }:
                       <span>Agilizar por WhatsApp</span>
                     </button>
                     <button
-                      onClick={() => setSubmitted(false)}
+                      onClick={() => {
+                        setSubmitted(false);
+                        setSavedToSheets(false);
+                      }}
                       className="text-slate-400 hover:text-white text-xs font-semibold py-2 px-4 cursor-pointer"
                     >
                       Enviar otra cotización
@@ -226,13 +299,38 @@ export default function Contact({ quoteItems, onRemoveQuoteItem, onClearQuote }:
               ) : (
                 <form onSubmit={handleSubmitWeb} className="space-y-6">
                   <div className="border-b border-slate-800 pb-4">
-                    <h3 className="font-heading font-bold text-xl text-white">
-                      Formulario de Cotización Técnica
-                    </h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h3 className="font-heading font-bold text-xl text-white">
+                        Formulario de Cotización Técnica
+                      </h3>
+                      {storedDb ? (
+                        <button
+                          type="button"
+                          onClick={onOpenGoogleSheets}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors w-fit cursor-pointer"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>Google Sheets Conectado</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                      ) : (
+                        onOpenGoogleSheets && (
+                          <button
+                            type="button"
+                            onClick={onOpenGoogleSheets}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 hover:text-emerald-400 border border-slate-700 hover:border-emerald-500/40 transition-colors w-fit cursor-pointer"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Conectar Base de Datos</span>
+                          </button>
+                        )
+                      )}
+                    </div>
                     <p className="text-xs text-slate-400 mt-1">
                       Completa los datos para recibir una propuesta con referencias y disponibilidad inmediata.
                     </p>
                   </div>
+
 
                   {/* Quoted Products Preview */}
                   {quoteItems.length > 0 && (

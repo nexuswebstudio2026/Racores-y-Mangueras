@@ -62,3 +62,64 @@ export interface CompanyInfo {
   hoursSaturday: string;
   hoursSunday: string;
 }
+
+export interface GoogleSheetsDatabaseInfo {
+  spreadsheetId: string;
+  spreadsheetUrl: string;
+  title: string;
+  connectedAt: string;
+  lastSyncedAt?: string;
+  sheetsCount?: number;
+  totalProductsCount?: number;
+  totalQuotesCount?: number;
+}
+
+export interface CustomerQuoteRecord {
+  id: string;
+  timestamp: string;
+  clientName: string;
+  companyName: string;
+  phone: string;
+  email: string;
+  city: string;
+  sector: string;
+  requestType: string;
+  itemsSummary: string;
+  totalQuantity: number;
+  notes: string;
+  status: 'Pendiente' | 'En Gestión' | 'Cotizado' | 'Cerrado';
+  assignedTo?: string;
+  internalNotes?: string;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  role: string;
+  title: string;
+  email: string;
+  phone: string;
+  pin: string;
+  active: boolean;
+  isOwner?: boolean;
+  avatarColor: string;
+  initials: string;
+  lastLogin?: string;
+  permissions: {
+    allAccess: boolean;
+    manageUsers: boolean;
+    manageQuotes: boolean;
+    manageInventory: boolean;
+    accessGoogleSheets: boolean;
+  };
+}
+
+export interface ActivityLogItem {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  action: string;
+  details: string;
+  category: 'auth' | 'quotes' | 'inventory' | 'users' | 'sheets';
+}
