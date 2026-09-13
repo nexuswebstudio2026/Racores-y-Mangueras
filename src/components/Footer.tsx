@@ -67,12 +67,8 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
             <ul className="space-y-2 text-xs">
               {[
                 { label: 'Inicio', href: '#inicio' },
-                { label: 'Quiénes Somos', href: '#nosotros' },
-                { label: 'Mangueras Hidráulicas', href: '#mangueras' },
-                { label: 'Catálogo de Racores', href: '#catalogo' },
-                { label: 'Servicios Técnicos', href: '#servicios' },
-                { label: 'Sectores Atendidos', href: '#sectores' },
-                { label: 'Contacto & Cotizaciones', href: '#contacto' },
+                { label: 'Productos', href: '#productos' },
+                { label: 'Contactos', href: '#contacto' },
               ].map((link) => (
                 <li key={link.href}>
                   <a
@@ -146,7 +142,7 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
                 className="flex items-center gap-1.5 hover:text-[#ffd200] text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-[#0e244d] rounded-lg border border-[#163673] hover:border-[#ffd200]/40 cursor-pointer text-xs font-semibold"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-[#ffd200]" />
-                <span>Panel Administrativo (Equipo)</span>
+                <span>Ingresar (Portal de Usuarios)</span>
               </button>
             )}
 

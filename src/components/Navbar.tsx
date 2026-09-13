@@ -23,18 +23,15 @@ interface NavbarProps {
   onOpenGoogleSheets?: () => void;
   onOpenAdmin?: () => void;
   currentAdminUser?: AdminUser | null;
-  currentView?: 'store' | 'admin';
+  currentView?: 'store' | 'login' | 'admin';
   onNavigateHome?: () => void;
+  onNavigateLogin?: () => void;
 }
 
 const navLinks = [
   { label: 'Inicio', href: '#inicio' },
-  { label: 'Nosotros', href: '#nosotros' },
-  { label: 'Mangueras', href: '#mangueras' },
-  { label: 'Catálogo', href: '#catalogo' },
-  { label: 'Servicios', href: '#servicios' },
-  { label: 'Sectores', href: '#sectores' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Productos', href: '#productos' },
+  { label: 'Contactos', href: '#contacto' },
 ];
 
 export default function Navbar({ 
@@ -45,6 +42,7 @@ export default function Navbar({
   currentAdminUser,
   currentView = 'store',
   onNavigateHome,
+  onNavigateLogin,
 }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -76,7 +74,7 @@ export default function Navbar({
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileOpen(false);
-    if (currentView === 'admin' && onNavigateHome) {
+    if ((currentView === 'admin' || currentView === 'login') && onNavigateHome) {
       onNavigateHome();
       setTimeout(() => {
         const target = document.querySelector(href);
@@ -183,26 +181,42 @@ export default function Navbar({
                 id="back-to-store-nav-btn"
               >
                 <ArrowLeft className="w-4 h-4 text-[#ffd200]" />
-                <span className="hidden sm:inline">Catálogo Comercial</span>
+                <span className="hidden sm:inline">Volver a Inicio</span>
+              </button>
+            ) : currentView === 'login' ? (
+              <button
+                onClick={onNavigateHome}
+                className="bg-[#0b1b3b] hover:bg-[#102754] text-[#ffd200] px-3.5 py-2 rounded-xl border border-[#ffd200]/40 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm"
+                title="Volver a la vista del catálogo y tienda"
+                id="back-to-store-from-login-btn"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#ffd200]" />
+                <span className="hidden sm:inline">Volver a Inicio</span>
               </button>
             ) : (
-              onOpenAdmin && (
+              (onNavigateLogin || onOpenAdmin) && (
                 <button
-                  onClick={onOpenAdmin}
-                  className="bg-[#0b1b3b] hover:bg-[#102754] text-slate-200 hover:text-[#ffd200] p-2 sm:px-3 sm:py-2 rounded-xl border border-[#163878] hover:border-[#ffd200]/50 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm"
-                  title="Acceso Usuarios y Personal en la página"
-                  id="admin-panel-nav-btn"
+                  onClick={() => {
+                    if (onNavigateLogin) {
+                      onNavigateLogin();
+                    } else if (onOpenAdmin) {
+                      onOpenAdmin();
+                    }
+                  }}
+                  className="bg-[#0b1b3b] hover:bg-[#ffd200] text-slate-100 hover:text-[#060e1f] px-3.5 py-2 rounded-xl border border-[#ffd200]/40 hover:border-[#ffd200] transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm group"
+                  title="Ingresar como usuario autorizado"
+                  id="nav-login-btn"
                 >
                   {currentAdminUser ? (
                     <>
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                      <span className="hidden lg:inline text-white font-bold">{currentAdminUser.name.split(' ')[0]}</span>
-                      <span className="hidden sm:inline text-[#ffd200] text-[10px] bg-[#ffd200]/10 px-1.5 py-0.2 rounded border border-[#ffd200]/30 font-bold">Panel</span>
+                      <span className="text-[#ffd200] group-hover:text-[#060e1f] font-black">{currentAdminUser.name.split(' ')[0]}</span>
+                      <span className="text-[10px] bg-[#ffd200]/20 group-hover:bg-[#060e1f]/20 px-1.5 py-0.2 rounded font-mono">Panel</span>
                     </>
                   ) : (
                     <>
-                      <Users className="w-4 h-4 text-[#ffd200]" />
-                      <span className="hidden md:inline font-bold">Acceso Usuarios</span>
+                      <Users className="w-4 h-4 text-[#ffd200] group-hover:text-[#060e1f]" />
+                      <span className="font-extrabold tracking-wide">Ingresar</span>
                     </>
                   )}
                 </button>
@@ -241,7 +255,7 @@ export default function Navbar({
               onClick={(e) => handleNavClick(e, '#contacto')}
               className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-[#ffd200] via-[#f5b800] to-[#e8a800] hover:from-[#ffe259] hover:to-[#ffd200] text-[#060e1f] px-4 py-2.5 rounded-xl text-sm font-black shadow-md shadow-[#ffd200]/20 hover:shadow-[#ffd200]/40 transition-all whitespace-nowrap border border-[#ffe566]/60"
             >
-              <span>Solicitar Cotización</span>
+              <span>Contactar</span>
               <ArrowUpRight className="w-4 h-4 text-[#060e1f]" />
             </a>
 
@@ -281,8 +295,8 @@ export default function Navbar({
               ))}
             </div>
 
-            <div className="pt-3 border-t border-[#122e62] space-y-2.5">
-              {currentView === 'admin' ? (
+            <div className="pt-3 border-t border-[#122e66] space-y-2.5">
+              {(currentView === 'admin' || currentView === 'login') ? (
                 <button
                   onClick={() => {
                     setMobileOpen(false);
@@ -292,29 +306,33 @@ export default function Navbar({
                 >
                   <span className="flex items-center gap-2">
                     <ArrowLeft className="w-4 h-4 text-[#ffd200]" />
-                    <span>Volver al Catálogo Comercial</span>
+                    <span>Volver a Inicio</span>
                   </span>
                   <span className="text-xs bg-[#ffd200] text-[#060e1f] px-2 py-0.5 rounded-md font-black">
                     Inicio
                   </span>
                 </button>
               ) : (
-                onOpenAdmin && (
+                (onNavigateLogin || onOpenAdmin) && (
                   <button
                     onClick={() => {
                       setMobileOpen(false);
-                      onOpenAdmin();
+                      if (onNavigateLogin) {
+                        onNavigateLogin();
+                      } else if (onOpenAdmin) {
+                        onOpenAdmin();
+                      }
                     }}
-                    className="w-full flex items-center justify-between bg-[#0b1c3c] border border-[#ffd200]/30 px-4 py-2.5 rounded-xl text-[#ffd200] font-semibold text-sm"
+                    className="w-full flex items-center justify-between bg-[#0b1c3c] border border-[#ffd200]/40 px-4 py-2.5 rounded-xl text-[#ffd200] font-bold text-sm"
                   >
                     <span className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-[#ffd200]" />
                       <span>
-                        {currentAdminUser ? `Panel de Control (${currentAdminUser.name.split(' ')[0]})` : 'Acceso Usuarios y Personal'}
+                        {currentAdminUser ? `Panel (${currentAdminUser.name.split(' ')[0]})` : 'Ingresar al Portal'}
                       </span>
                     </span>
-                    <span className="text-[10px] bg-[#ffd200]/20 text-[#ffd200] px-2 py-0.5 rounded-full font-bold">
-                      En Página
+                    <span className="text-xs bg-[#ffd200] text-[#060e1f] px-2 py-0.5 rounded-md font-black">
+                      Ingresar
                     </span>
                   </button>
                 )

@@ -6,33 +6,37 @@ import MissionVision from './components/MissionVision';
 import HosesSection from './components/HosesSection';
 import Products from './components/Products';
 import Services from './components/Services';
-import Sectors from './components/Sectors';
+import Sectores from './components/Sectors';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import QuoteDrawer from './components/QuoteDrawer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import GoogleSheetsModal from './components/GoogleSheetsModal';
-import UserAccessPanel from './components/UserAccessPanel';
+import LoginPage from './components/LoginPage';
 import AdminPanelModal from './components/AdminPanelModal';
 import { Product, QuoteCartItem, AdminUser } from './types';
 import { getCurrentUser, logoutAdminUser } from './services/userService';
-import { Check, ShoppingBag } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 export default function App() {
   const [quoteItems, setQuoteItems] = useState<QuoteCartItem[]>([]);
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [isSheetsOpen, setIsSheetsOpen] = useState(false);
   const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser | null>(null);
-  const [currentView, setCurrentView] = useState<'store' | 'admin'>('store');
+  const [currentView, setCurrentView] = useState<'store' | 'login' | 'admin'>('store');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setCurrentAdminUser(getCurrentUser());
   }, []);
 
-  const handleOpenAdmin = () => {
-    setCurrentView('admin');
+  const handleOpenLogin = () => {
+    if (currentAdminUser) {
+      setCurrentView('admin');
+    } else {
+      setCurrentView('login');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -50,9 +54,9 @@ export default function App() {
 
   const handleSwitchUser = () => {
     setCurrentAdminUser(null);
-    setCurrentView('admin');
+    setCurrentView('login');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast('Selecciona el nuevo perfil de usuario para ingresar');
+    showToast('Selecciona el perfil de usuario para ingresar');
   };
 
   const handleLogout = () => {
@@ -60,7 +64,7 @@ export default function App() {
     setCurrentAdminUser(null);
     setCurrentView('store');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    showToast('Sesión administrativa cerrada');
+    showToast('Sesión cerrada');
   };
 
   const showToast = (message: string) => {
@@ -102,20 +106,20 @@ export default function App() {
   };
 
   const handleScrollToCatalog = () => {
-    if (currentView === 'admin') {
+    if (currentView !== 'store') {
       setCurrentView('store');
       setTimeout(() => {
-        const el = document.querySelector('#catalogo');
+        const el = document.querySelector('#productos') || document.querySelector('#catalogo');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } else {
-      const el = document.querySelector('#catalogo');
+      const el = document.querySelector('#productos') || document.querySelector('#catalogo');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   const handleScrollToContact = () => {
-    if (currentView === 'admin') {
+    if (currentView !== 'store') {
       setCurrentView('store');
       setTimeout(() => {
         const el = document.querySelector('#contacto');
@@ -152,15 +156,22 @@ export default function App() {
         quoteItems={quoteItems}
         onOpenQuote={() => setIsQuoteOpen(true)}
         onOpenGoogleSheets={() => setIsSheetsOpen(true)}
-        onOpenAdmin={handleOpenAdmin}
+        onOpenAdmin={handleOpenLogin}
         currentAdminUser={currentAdminUser}
         currentView={currentView}
         onNavigateHome={handleNavigateHome}
+        onNavigateLogin={handleOpenLogin}
       />
 
       {/* Main Content View (In-Page) */}
       <main className="flex-1">
-        {currentView === 'admin' ? (
+        {currentView === 'login' ? (
+          <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+            onBackToHome={handleNavigateHome}
+            onNotify={showToast}
+          />
+        ) : currentView === 'admin' ? (
           currentAdminUser ? (
             <AdminPanelModal
               isOpen={true}
@@ -172,10 +183,9 @@ export default function App() {
               onNotify={showToast}
             />
           ) : (
-            <UserAccessPanel
-              mode="fullpage"
+            <LoginPage
               onLoginSuccess={handleLoginSuccess}
-              onBackToStore={handleNavigateHome}
+              onBackToHome={handleNavigateHome}
               onNotify={showToast}
             />
           )
@@ -196,14 +206,8 @@ export default function App() {
               quotedProductIds={quotedProductIds}
             />
             <Services />
-            <Sectors />
+            <Sectores />
             <Testimonials />
-            {/* Embedded in-page user access section */}
-            <UserAccessPanel
-              mode="section"
-              onLoginSuccess={handleLoginSuccess}
-              onNotify={showToast}
-            />
             <Contact
               quoteItems={quoteItems}
               onRemoveQuoteItem={handleRemoveQuoteItem}
@@ -217,7 +221,7 @@ export default function App() {
       {/* Footer */}
       <Footer 
         onOpenGoogleSheets={() => setIsSheetsOpen(true)} 
-        onOpenAdmin={handleOpenAdmin}
+        onOpenAdmin={handleOpenLogin}
       />
 
       {/* Interactive Quote Drawer */}

@@ -104,7 +104,8 @@ export default function Products({ onAddToQuote, quotedProductIds }: ProductsPro
   const displayedProducts = filteredProducts.slice(0, visibleCount);
 
   return (
-    <section id="catalogo" className="py-20 md:py-28 bg-[#090b10] border-t border-slate-800/80 relative">
+    <section id="productos" className="py-20 md:py-28 bg-[#090b10] border-t border-slate-800/80 relative">
+      <span id="catalogo" className="absolute -top-20" />
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
