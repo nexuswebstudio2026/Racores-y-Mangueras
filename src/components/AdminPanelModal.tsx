@@ -30,7 +30,8 @@ import {
   TrendingUp,
   MapPin,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  ArrowLeft
 } from 'lucide-react';
 import { 
   AdminUser, 
@@ -75,6 +76,7 @@ interface AdminPanelModalProps {
   onSwitchUser: () => void;
   onLogout: () => void;
   onNotify?: (msg: string) => void;
+  inline?: boolean;
 }
 
 type TabType = 'quotes' | 'accounting' | 'logistics' | 'users' | 'activity';
@@ -86,6 +88,7 @@ export default function AdminPanelModal({
   onSwitchUser,
   onLogout,
   onNotify,
+  inline = false,
 }: AdminPanelModalProps) {
   // Determine appropriate initial tab based on role
   const getDefaultTab = (): TabType => {
@@ -639,11 +642,11 @@ export default function AdminPanelModal({
     .reduce((sum, a) => sum + a.amount, 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+    <div className={inline ? "w-full bg-[#060e1e] text-slate-100 min-h-[calc(100vh-80px)] py-4 sm:py-6 px-3 sm:px-6 lg:px-8" : "fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"}>
       <div 
-        className="bg-[#0e121b] border border-slate-700/80 w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[94vh]"
-        role="dialog"
-        aria-modal="true"
+        className={inline ? "bg-[#091224] border-2 border-[#163878] w-full max-w-7xl mx-auto rounded-2xl shadow-2xl overflow-hidden flex flex-col min-h-[85vh]" : "bg-[#0e121b] border border-slate-700/80 w-full max-w-6xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[94vh]"}
+        role={inline ? undefined : "dialog"}
+        aria-modal={inline ? undefined : true}
       >
         {/* Top Navbar Header */}
         <div className="p-4 sm:p-5 border-b border-[#122e66] flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-[#0a1b38] via-[#071328] to-[#0a1b38]">
@@ -669,6 +672,11 @@ export default function AdminPanelModal({
                 <span className="text-[11px] font-bold text-[#ffd200] tracking-wider uppercase bg-[#091b3b] px-2 py-0.5 rounded border border-[#163878]">
                   ★ Calidad y Servicio ★
                 </span>
+                {inline && (
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full hidden sm:inline">
+                    En Página
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-300 mt-0.5">
                 Racores y Mangueras de Nariño S.A.S. • Pasto, Nariño
@@ -678,6 +686,17 @@ export default function AdminPanelModal({
 
           {/* Current User Pill & Session Switcher */}
           <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+            {inline && (
+              <button
+                onClick={onClose}
+                className="px-3 py-2 bg-[#0e2246] hover:bg-[#143162] text-slate-200 hover:text-[#ffd200] border border-[#1b4385] rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                title="Volver al Catálogo Público de la Empresa"
+              >
+                <ArrowLeft className="w-4 h-4 text-[#ffd200]" />
+                <span className="hidden sm:inline">Volver a la Tienda</span>
+              </button>
+            )}
+
             <div className="bg-[#161d2d] border border-slate-700/80 rounded-xl px-3 py-1.5 flex items-center gap-2.5 shadow-sm">
               <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${currentUser.avatarColor} text-white font-bold flex items-center justify-center text-xs shadow`}>
                 {currentUser.initials}
@@ -698,10 +717,10 @@ export default function AdminPanelModal({
 
             <button
               onClick={onSwitchUser}
-              className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Cambiar de empleado activo"
+              className="px-2.5 py-2 bg-[#10244c] hover:bg-[#16346e] text-slate-200 hover:text-[#ffd200] border border-[#193d80] rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Ver panel de acceso para cambiar de usuario"
             >
-              <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+              <UserCheck className="w-3.5 h-3.5 text-[#ffd200]" />
               <span className="hidden md:inline">Cambiar Usuario</span>
             </button>
 
@@ -713,13 +732,15 @@ export default function AdminPanelModal({
               <LogOut className="w-4 h-4" />
             </button>
 
-            <button
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
-              aria-label="Cerrar panel"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {!inline && (
+              <button
+                onClick={onClose}
+                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+                aria-label="Cerrar panel"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 

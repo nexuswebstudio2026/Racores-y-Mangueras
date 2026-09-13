@@ -13,7 +13,7 @@ import Footer from './components/Footer';
 import QuoteDrawer from './components/QuoteDrawer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import GoogleSheetsModal from './components/GoogleSheetsModal';
-import AdminLoginModal from './components/AdminLoginModal';
+import UserAccessPanel from './components/UserAccessPanel';
 import AdminPanelModal from './components/AdminPanelModal';
 import { Product, QuoteCartItem, AdminUser } from './types';
 import { getCurrentUser, logoutAdminUser } from './services/userService';
@@ -24,8 +24,7 @@ export default function App() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [isSheetsOpen, setIsSheetsOpen] = useState(false);
   const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser | null>(null);
-  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [currentView, setCurrentView] = useState<'store' | 'admin'>('store');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,28 +32,34 @@ export default function App() {
   }, []);
 
   const handleOpenAdmin = () => {
-    if (currentAdminUser) {
-      setIsAdminPanelOpen(true);
-    } else {
-      setIsAdminLoginOpen(true);
-    }
+    setCurrentView('admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateHome = () => {
+    setCurrentView('store');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLoginSuccess = (user: AdminUser) => {
     setCurrentAdminUser(user);
-    setIsAdminPanelOpen(true);
-    showToast(`Bienvenido al panel, ${user.name}`);
+    setCurrentView('admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast(`Bienvenido al panel de control, ${user.name}`);
   };
 
   const handleSwitchUser = () => {
-    setIsAdminPanelOpen(false);
-    setIsAdminLoginOpen(true);
+    setCurrentAdminUser(null);
+    setCurrentView('admin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast('Selecciona el nuevo perfil de usuario para ingresar');
   };
 
   const handleLogout = () => {
     logoutAdminUser();
     setCurrentAdminUser(null);
-    setIsAdminPanelOpen(false);
+    setCurrentView('store');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     showToast('Sesión administrativa cerrada');
   };
 
@@ -97,29 +102,45 @@ export default function App() {
   };
 
   const handleScrollToCatalog = () => {
-    const el = document.querySelector('#catalogo');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (currentView === 'admin') {
+      setCurrentView('store');
+      setTimeout(() => {
+        const el = document.querySelector('#catalogo');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const el = document.querySelector('#catalogo');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleScrollToContact = () => {
-    const el = document.querySelector('#contacto');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (currentView === 'admin') {
+      setCurrentView('store');
+      setTimeout(() => {
+        const el = document.querySelector('#contacto');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const el = document.querySelector('#contacto');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const quotedProductIds = quoteItems.map((item) => item.product.id);
 
   return (
-    <div className="min-h-screen bg-[#0a0d14] text-slate-100 flex flex-col selection:bg-amber-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-[#0a0d14] text-slate-100 flex flex-col selection:bg-[#ffd200] selection:text-[#060e1f] font-sans">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 bg-[#121622] border border-amber-500 text-white text-xs font-semibold py-3 px-4 rounded-2xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-4 duration-200">
-          <div className="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center">
+        <div className="fixed top-20 right-6 z-50 bg-[#0c1a35] border border-[#ffd200] text-white text-xs font-semibold py-3 px-4 rounded-2xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-4 duration-200">
+          <div className="w-5 h-5 rounded-full bg-[#ffd200]/20 text-[#ffd200] flex items-center justify-center">
             <Check className="w-3.5 h-3.5" />
           </div>
           <span>{toastMessage}</span>
           <button
             onClick={() => setIsQuoteOpen(true)}
-            className="ml-2 underline text-amber-400 hover:text-amber-300 font-bold"
+            className="ml-2 underline text-[#ffd200] hover:text-[#ffe259] font-bold"
           >
             Ver
           </button>
@@ -133,33 +154,64 @@ export default function App() {
         onOpenGoogleSheets={() => setIsSheetsOpen(true)}
         onOpenAdmin={handleOpenAdmin}
         currentAdminUser={currentAdminUser}
+        currentView={currentView}
+        onNavigateHome={handleNavigateHome}
       />
 
-      {/* Main Content Sections */}
+      {/* Main Content View (In-Page) */}
       <main className="flex-1">
-        <Hero
-          onExploreCatalog={handleScrollToCatalog}
-          onOpenQuote={() => setIsQuoteOpen(true)}
-        />
-        <About />
-        <MissionVision />
-        <HosesSection
-          onAddToQuote={handleAddToQuote}
-          onOpenConsultation={handleScrollToContact}
-        />
-        <Products
-          onAddToQuote={handleAddToQuote}
-          quotedProductIds={quotedProductIds}
-        />
-        <Services />
-        <Sectors />
-        <Testimonials />
-        <Contact
-          quoteItems={quoteItems}
-          onRemoveQuoteItem={handleRemoveQuoteItem}
-          onClearQuote={handleClearQuote}
-          onOpenGoogleSheets={() => setIsSheetsOpen(true)}
-        />
+        {currentView === 'admin' ? (
+          currentAdminUser ? (
+            <AdminPanelModal
+              isOpen={true}
+              inline={true}
+              currentUser={currentAdminUser}
+              onClose={handleNavigateHome}
+              onSwitchUser={handleSwitchUser}
+              onLogout={handleLogout}
+              onNotify={showToast}
+            />
+          ) : (
+            <UserAccessPanel
+              mode="fullpage"
+              onLoginSuccess={handleLoginSuccess}
+              onBackToStore={handleNavigateHome}
+              onNotify={showToast}
+            />
+          )
+        ) : (
+          <>
+            <Hero
+              onExploreCatalog={handleScrollToCatalog}
+              onOpenQuote={() => setIsQuoteOpen(true)}
+            />
+            <About />
+            <MissionVision />
+            <HosesSection
+              onAddToQuote={handleAddToQuote}
+              onOpenConsultation={handleScrollToContact}
+            />
+            <Products
+              onAddToQuote={handleAddToQuote}
+              quotedProductIds={quotedProductIds}
+            />
+            <Services />
+            <Sectors />
+            <Testimonials />
+            {/* Embedded in-page user access section */}
+            <UserAccessPanel
+              mode="section"
+              onLoginSuccess={handleLoginSuccess}
+              onNotify={showToast}
+            />
+            <Contact
+              quoteItems={quoteItems}
+              onRemoveQuoteItem={handleRemoveQuoteItem}
+              onClearQuote={handleClearQuote}
+              onOpenGoogleSheets={() => setIsSheetsOpen(true)}
+            />
+          </>
+        )}
       </main>
 
       {/* Footer */}
@@ -185,25 +237,6 @@ export default function App() {
         onClose={() => setIsSheetsOpen(false)}
         onNotify={showToast}
       />
-
-      {/* Admin Login Modal */}
-      <AdminLoginModal
-        isOpen={isAdminLoginOpen}
-        onClose={() => setIsAdminLoginOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
-      />
-
-      {/* Admin Panel Modal */}
-      {currentAdminUser && (
-        <AdminPanelModal
-          isOpen={isAdminPanelOpen}
-          currentUser={currentAdminUser}
-          onClose={() => setIsAdminPanelOpen(false)}
-          onSwitchUser={handleSwitchUser}
-          onLogout={handleLogout}
-          onNotify={showToast}
-        />
-      )}
 
       {/* Floating WhatsApp Action Button */}
       <FloatingWhatsApp />

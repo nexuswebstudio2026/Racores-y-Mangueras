@@ -9,7 +9,9 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Wrench,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Users,
+  ArrowLeft
 } from 'lucide-react';
 import { companyInfo } from '../data/companyData';
 import { QuoteCartItem, AdminUser } from '../types';
@@ -21,6 +23,8 @@ interface NavbarProps {
   onOpenGoogleSheets?: () => void;
   onOpenAdmin?: () => void;
   currentAdminUser?: AdminUser | null;
+  currentView?: 'store' | 'admin';
+  onNavigateHome?: () => void;
 }
 
 const navLinks = [
@@ -38,7 +42,9 @@ export default function Navbar({
   onOpenQuote, 
   onOpenGoogleSheets,
   onOpenAdmin,
-  currentAdminUser
+  currentAdminUser,
+  currentView = 'store',
+  onNavigateHome,
 }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -70,9 +76,19 @@ export default function Navbar({
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileOpen(false);
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
+    if (currentView === 'admin' && onNavigateHome) {
+      onNavigateHome();
+      setTimeout(() => {
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 120);
+    } else {
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   };
 
@@ -159,26 +175,38 @@ export default function Navbar({
 
           {/* Actions & Quotation Cart Trigger */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {onOpenAdmin && (
+            {currentView === 'admin' ? (
               <button
-                onClick={onOpenAdmin}
-                className="bg-[#0b1b3b] hover:bg-[#102754] text-slate-200 hover:text-[#ffd200] p-2 sm:px-3 sm:py-2 rounded-xl border border-[#163878] hover:border-[#ffd200]/50 transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm"
-                title="Acceso al Panel Administrativo"
-                id="admin-panel-nav-btn"
+                onClick={onNavigateHome}
+                className="bg-[#0b1b3b] hover:bg-[#102754] text-[#ffd200] px-3.5 py-2 rounded-xl border border-[#ffd200]/40 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm"
+                title="Volver a la vista del catálogo y tienda"
+                id="back-to-store-nav-btn"
               >
-                {currentAdminUser ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                    <span className="hidden lg:inline text-white font-bold">{currentAdminUser.name.split(' ')[0]}</span>
-                    <span className="hidden sm:inline text-[#ffd200] text-[10px] bg-[#ffd200]/10 px-1.5 py-0.2 rounded border border-[#ffd200]/30 font-bold">Admin</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="w-4 h-4 text-[#ffd200]" />
-                    <span className="hidden md:inline font-medium">Panel Admin</span>
-                  </>
-                )}
+                <ArrowLeft className="w-4 h-4 text-[#ffd200]" />
+                <span className="hidden sm:inline">Catálogo Comercial</span>
               </button>
+            ) : (
+              onOpenAdmin && (
+                <button
+                  onClick={onOpenAdmin}
+                  className="bg-[#0b1b3b] hover:bg-[#102754] text-slate-200 hover:text-[#ffd200] p-2 sm:px-3 sm:py-2 rounded-xl border border-[#163878] hover:border-[#ffd200]/50 transition-all flex items-center gap-1.5 text-xs font-bold cursor-pointer shadow-sm"
+                  title="Acceso Usuarios y Personal en la página"
+                  id="admin-panel-nav-btn"
+                >
+                  {currentAdminUser ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                      <span className="hidden lg:inline text-white font-bold">{currentAdminUser.name.split(' ')[0]}</span>
+                      <span className="hidden sm:inline text-[#ffd200] text-[10px] bg-[#ffd200]/10 px-1.5 py-0.2 rounded border border-[#ffd200]/30 font-bold">Panel</span>
+                    </>
+                  ) : (
+                    <>
+                      <Users className="w-4 h-4 text-[#ffd200]" />
+                      <span className="hidden md:inline font-bold">Acceso Usuarios</span>
+                    </>
+                  )}
+                </button>
+              )
             )}
 
             {onOpenGoogleSheets && (
@@ -254,24 +282,42 @@ export default function Navbar({
             </div>
 
             <div className="pt-3 border-t border-[#122e62] space-y-2.5">
-              {onOpenAdmin && (
+              {currentView === 'admin' ? (
                 <button
                   onClick={() => {
                     setMobileOpen(false);
-                    onOpenAdmin();
+                    onNavigateHome?.();
                   }}
-                  className="w-full flex items-center justify-between bg-[#0b1c3c] border border-[#ffd200]/30 px-4 py-2.5 rounded-xl text-[#ffd200] font-semibold text-sm"
+                  className="w-full flex items-center justify-between bg-[#0b1c3c] border border-[#ffd200]/40 px-4 py-2.5 rounded-xl text-[#ffd200] font-bold text-sm"
                 >
                   <span className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-[#ffd200]" />
-                    <span>
-                      {currentAdminUser ? `Panel Admin (${currentAdminUser.name.split(' ')[0]})` : 'Panel Administrativo'}
-                    </span>
+                    <ArrowLeft className="w-4 h-4 text-[#ffd200]" />
+                    <span>Volver al Catálogo Comercial</span>
                   </span>
-                  <span className="text-[10px] bg-[#ffd200]/20 text-[#ffd200] px-2 py-0.5 rounded-full font-bold">
-                    Acceso
+                  <span className="text-xs bg-[#ffd200] text-[#060e1f] px-2 py-0.5 rounded-md font-black">
+                    Inicio
                   </span>
                 </button>
+              ) : (
+                onOpenAdmin && (
+                  <button
+                    onClick={() => {
+                      setMobileOpen(false);
+                      onOpenAdmin();
+                    }}
+                    className="w-full flex items-center justify-between bg-[#0b1c3c] border border-[#ffd200]/30 px-4 py-2.5 rounded-xl text-[#ffd200] font-semibold text-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#ffd200]" />
+                      <span>
+                        {currentAdminUser ? `Panel de Control (${currentAdminUser.name.split(' ')[0]})` : 'Acceso Usuarios y Personal'}
+                      </span>
+                    </span>
+                    <span className="text-[10px] bg-[#ffd200]/20 text-[#ffd200] px-2 py-0.5 rounded-full font-bold">
+                      En Página
+                    </span>
+                  </button>
+                )
               )}
 
               {onOpenGoogleSheets && (
