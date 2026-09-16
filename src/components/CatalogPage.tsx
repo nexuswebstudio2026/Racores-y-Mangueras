@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
-import { Search, PackageCheck, ShoppingCart, ArrowRight } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Search, PackageCheck, ShoppingCart } from 'lucide-react';
 import { products as rawProducts } from '../data/catalogData';
+import { fetchProductsFromPublicSheet } from '../services/googleSheetsService';
 import { Product } from '../types';
 
 interface CatalogPageProps {
@@ -13,13 +14,51 @@ const getReference = (product: Product) => `RYM-${String(product.id).padStart(4,
 export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
+  const [products, setProducts] = useState<Product[]>(rawProducts);
+  const [loading, setLoading] = useState(true);
 
-  const categories = ['Todos', ...Array.from(new Set(rawProducts.map((product) => product.category)))];
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProducts = async () => {
+      try {
+        const publicProducts = await fetchProductsFromPublicSheet();
+        if (!cancelled && publicProducts.length > 0) {
+          setProducts(publicProducts);
+          return;
+        }
+
+        if (!cancelled) {
+          setProducts(rawProducts);
+        }
+      } catch (error) {
+        console.warn('No se pudo cargar el catálogo desde Google Sheets, usando catálogo local:', error);
+        if (!cancelled) setProducts(rawProducts);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadProducts();
+
+    const syncInterval = window.setInterval(() => {
+      if (!cancelled) {
+        loadProducts();
+      }
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(syncInterval);
+    };
+  }, []);
+
+  const categories = ['Todos', ...Array.from(new Set(products.map((product) => product.category)))];
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return rawProducts.filter((product) => {
+    return products.filter((product) => {
       const matchesCategory = selectedCategory === 'Todos' || product.category === selectedCategory;
       if (!matchesCategory) return false;
 
@@ -29,7 +68,7 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
       const haystack = `${reference} ${product.name} ${product.category} ${product.specs}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
-  }, [searchQuery, selectedCategory]);
+  }, [products, searchQuery, selectedCategory]);
 
   return (
     <section className="bg-[#070d18] py-20 md:py-28 border-t border-slate-800/80">
@@ -53,6 +92,12 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
             referencias disponibles
           </div>
         </div>
+
+        {loading && (
+          <div className="mb-6 rounded-2xl border border-slate-800 bg-[#0c1322] px-4 py-3 text-sm text-slate-300">
+            Cargando catálogo desde Google Sheets...
+          </div>
+        )}
 
         <div className="bg-[#0c1322] rounded-2xl border border-slate-800/80 p-4 md:p-6 mb-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

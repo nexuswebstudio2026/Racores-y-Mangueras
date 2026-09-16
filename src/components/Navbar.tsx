@@ -243,18 +243,6 @@ export default function Navbar({
               )
             )}
 
-            {onOpenGoogleSheets && (
-              <button
-                onClick={onOpenGoogleSheets}
-                className="bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 hover:text-emerald-200 p-2 sm:px-3 sm:py-2 rounded-xl border border-emerald-500/40 transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-sm shadow-emerald-950/50"
-                title="Base de Datos en Google Sheets"
-                id="google-sheets-nav-btn"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                <span className="hidden md:inline">Google Sheets</span>
-              </button>
-            )}
-
             <button
               onClick={onOpenQuote}
               className="relative bg-[#0c2046] hover:bg-[#122e65] text-slate-100 hover:text-[#ffd200] p-2.5 rounded-xl border border-[#1a3e80] transition-all flex items-center gap-2 cursor-pointer shadow-sm"

@@ -136,34 +136,6 @@ export default function Footer({ onOpenGoogleSheets, onOpenAdmin }: FooterProps)
           </p>
 
           <div className="flex items-center gap-3">
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="flex items-center gap-1.5 hover:text-[#ffd200] text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-[#0e244d] rounded-lg border border-[#163673] hover:border-[#ffd200]/40 cursor-pointer text-xs font-semibold"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#ffd200]" />
-                <span>Ingresar (Portal de Usuarios)</span>
-              </button>
-            )}
-
-            {onOpenGoogleSheets && (
-              <button
-                onClick={onOpenGoogleSheets}
-                className="flex items-center gap-1.5 hover:text-emerald-300 text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-emerald-950/50 rounded-lg border border-[#163673] hover:border-emerald-500/40 cursor-pointer text-xs font-semibold"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Base de Datos Google Sheets</span>
-              </button>
-            )}
-
-            <button
-              onClick={scrollToTop}
-              className="flex items-center gap-2 hover:text-[#ffd200] text-slate-300 transition-colors p-2 bg-[#091834] hover:bg-[#0e244d] rounded-lg border border-[#163673] cursor-pointer"
-              aria-label="Volver al inicio"
-            >
-              <span>Volver arriba</span>
-              <ArrowUp className="w-3.5 h-3.5 text-[#ffd200]" />
-            </button>
           </div>
         </div>
       </div>

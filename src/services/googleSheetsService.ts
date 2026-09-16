@@ -1,6 +1,6 @@
 import { products } from '../data/catalogData';
 import { hoseTypes } from '../data/hoseTypes';
-import { CustomerQuoteRecord, GoogleSheetsDatabaseInfo } from '../types';
+import { CustomerQuoteRecord, GoogleSheetsDatabaseInfo, Product } from '../types';
 
 declare global {
   interface Window {
@@ -31,6 +31,9 @@ const SCOPES =
 const STORAGE_KEY = 'rym_google_sheets_db';
 const TOKEN_KEY = 'rym_google_access_token';
 const TOKEN_EXPIRY_KEY = 'rym_google_token_expiry';
+const PUBLIC_PRODUCTS_SHEET_URL =
+  (import.meta as unknown as { env?: { VITE_PUBLIC_PRODUCTS_SHEET_URL?: string } }).env?.VITE_PUBLIC_PRODUCTS_SHEET_URL ||
+  'https://docs.google.com/spreadsheets/d/1Q950f28lnPvsp7jqAh-42m-b1dNfCJx0_NPKUJkP5vs/gviz/tq?tqx=out:json&sheet=Productos%20e%20Inventario';
 
 export function getStoredSpreadsheet(): GoogleSheetsDatabaseInfo | null {
   try {
@@ -394,6 +397,115 @@ export async function appendQuoteToSpreadsheet(
   }
 
   return true;
+}
+
+/**
+ * Reads the products table from Google Sheets and converts it to the app's Product model.
+ */
+export async function fetchProductsFromSpreadsheet(
+  spreadsheetId: string,
+  accessToken: string
+): Promise<Product[]> {
+  const readUrl = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/Productos e Inventario!A2:H`;
+
+  const response = await fetch(readUrl, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudieron consultar los productos de Google Sheets');
+  }
+
+  const data = await response.json();
+  const rows: string[][] = data.values || [];
+
+  return rows
+    .filter((row) => row && row.length > 2 && row[2]?.trim())
+    .map((row, index) => {
+      const [ref, category, name, description, specs, priceText, stockStatus] = row;
+      const idFromRef = Number(String(ref || '').replace(/[^0-9]/g, '')) || index + 1;
+      const cleanPrice = Number(String(priceText || '').replace(/[^0-9]/g, '')) || 0;
+
+      return {
+        id: idFromRef,
+        category: category || 'General',
+        name: name || `Producto ${index + 1}`,
+        description: description || 'Sin descripción disponible',
+        specs: specs || stockStatus || 'Sin especificaciones disponibles',
+        estimatedPrice: cleanPrice > 0 ? cleanPrice : undefined,
+        image: `https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=900&q=80`,
+      };
+    });
+}
+
+export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
+  const separator = PUBLIC_PRODUCTS_SHEET_URL.includes('?') ? '&' : '?';
+  const response = await fetch(`${PUBLIC_PRODUCTS_SHEET_URL}${separator}cacheBust=${Date.now()}`, {
+    headers: {
+      Accept: 'application/json,text/plain,*/*',
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error('La hoja pública de Google Sheets no está disponible');
+  }
+
+  const text = await response.text();
+
+  if (!text || !text.includes('google.visualization.Query.setResponse')) {
+    throw new Error('La URL pública no devolvió datos válidos de la hoja');
+  }
+
+  const jsonPart = text.match(/\{.*\}/s)?.[0];
+  if (!jsonPart) {
+    throw new Error('No se pudo interpretar la respuesta de la hoja pública');
+  }
+
+  const payload = JSON.parse(jsonPart) as {
+    table?: {
+      cols?: Array<{ label?: string }>;
+      rows?: Array<{ c?: Array<{ v?: string | number } | null> }>;
+    };
+  };
+  const header = payload.table?.cols?.map((column) => column.label || '') || [];
+  const rows: string[][] = payload.table?.rows?.map((r) =>
+    r.c?.map((cell) => (cell && 'v' in cell ? String(cell.v) : '')) || []
+  ) || [];
+
+  if (!rows.length) return [];
+
+  const nameIndex = header.indexOf('Nombre del Producto');
+  const categoryIndex = header.indexOf('Categoría');
+  const descriptionIndex = header.indexOf('Descripción Técnica');
+  const specsIndex = header.indexOf('Especificaciones (Presión / Medida / Rosca)');
+  const refIndex = header.indexOf('ID Ref');
+  const priceIndex = header.indexOf('Precio Estimado (COP)');
+
+  return rows
+    .filter((row) => row && row.length > 2 && row[nameIndex]?.trim())
+    .map((row, index) => {
+      const refValue = refIndex >= 0 ? row[refIndex] : '';
+      const category = categoryIndex >= 0 ? row[categoryIndex] : 'General';
+      const name = nameIndex >= 0 ? row[nameIndex] : `Producto ${index + 1}`;
+      const description = descriptionIndex >= 0 ? row[descriptionIndex] : 'Sin descripción disponible';
+      const specs = specsIndex >= 0 ? row[specsIndex] : 'Sin especificaciones disponibles';
+      const priceText = priceIndex >= 0 ? row[priceIndex] : '';
+      const numericId = Number(String(refValue || '').replace(/[^0-9]/g, '')) || index + 1;
+      const cleanPrice = Number(String(priceText || '').replace(/[^0-9]/g, '')) || 0;
+
+      return {
+        id: numericId,
+        category: category || 'General',
+        name,
+        description,
+        specs,
+        estimatedPrice: cleanPrice > 0 ? cleanPrice : undefined,
+        image: `https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=900&q=80`,
+      };
+    });
 }
 
 /**
