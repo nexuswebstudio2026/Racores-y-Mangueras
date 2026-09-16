@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search, PackageCheck, ShoppingCart } from 'lucide-react';
-import { products as rawProducts } from '../data/catalogData';
 import { fetchProductsFromPublicSheet } from '../services/googleSheetsService';
 import { Product } from '../types';
 
@@ -14,7 +13,7 @@ const getReference = (product: Product) => `RYM-${String(product.id).padStart(4,
 export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
-  const [products, setProducts] = useState<Product[]>(rawProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,17 +22,12 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
     const loadProducts = async () => {
       try {
         const publicProducts = await fetchProductsFromPublicSheet();
-        if (!cancelled && publicProducts.length > 0) {
-          setProducts(publicProducts);
-          return;
-        }
-
         if (!cancelled) {
-          setProducts(rawProducts);
+          setProducts(publicProducts);
         }
       } catch (error) {
-        console.warn('No se pudo cargar el catálogo desde Google Sheets, usando catálogo local:', error);
-        if (!cancelled) setProducts(rawProducts);
+        console.warn('No se pudo cargar el catálogo público desde Google Sheets:', error);
+        if (!cancelled) setProducts([]);
       } finally {
         if (!cancelled) setLoading(false);
       }

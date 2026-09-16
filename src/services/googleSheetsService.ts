@@ -470,19 +470,26 @@ export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
       rows?: Array<{ c?: Array<{ v?: string | number } | null> }>;
     };
   };
-  const header = payload.table?.cols?.map((column) => column.label || '') || [];
+  const normalizeHeader = (value: string) =>
+    value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  const header = payload.table?.cols?.map((column) => normalizeHeader(column.label || '')) || [];
   const rows: string[][] = payload.table?.rows?.map((r) =>
     r.c?.map((cell) => (cell && 'v' in cell ? String(cell.v) : '')) || []
   ) || [];
 
   if (!rows.length) return [];
 
-  const nameIndex = header.indexOf('Nombre del Producto');
-  const categoryIndex = header.indexOf('Categoría');
-  const descriptionIndex = header.indexOf('Descripción Técnica');
-  const specsIndex = header.indexOf('Especificaciones (Presión / Medida / Rosca)');
-  const refIndex = header.indexOf('ID Ref');
-  const priceIndex = header.indexOf('Precio Estimado (COP)');
+  const nameIndex = header.indexOf('nombre del producto');
+  const categoryIndex = header.indexOf('categoria');
+  const descriptionIndex = header.indexOf('descripcion tecnica');
+  const specsIndex = header.indexOf('especificaciones (presion / medida / rosca)');
+  const refIndex = header.indexOf('id ref');
+  const priceIndex = header.indexOf('precio estimado (cop)');
 
   return rows
     .filter((row) => row && row.length > 2 && row[nameIndex]?.trim())
