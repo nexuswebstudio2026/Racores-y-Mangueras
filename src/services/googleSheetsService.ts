@@ -491,6 +491,42 @@ export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
       return indexes;
     }, [])[occurrence] ?? -1;
 
+  const parseNumberValue = (value: string | number | null | undefined): number => {
+    if (value === null || value === undefined || value === '') return 0;
+
+    const text = String(value).trim();
+    if (!text) return 0;
+
+    const withoutCurrency = text.replace(/[$\sA-Za-z]/g, '').replace(/\u00A0/g, '');
+    if (!withoutCurrency) return 0;
+
+    if (/^\d+(?:\.\d+)?$/.test(withoutCurrency)) {
+      const parsed = Number(withoutCurrency);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    if (/^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(withoutCurrency)) {
+      const normalized = withoutCurrency.replace(/\./g, '').replace(',', '.');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    if (/^\d{1,3}(?:,\d{3})+(?:\.\d+)?$/.test(withoutCurrency)) {
+      const normalized = withoutCurrency.replace(/,/g, '');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    if (/^\d+(?:,\d+)?$/.test(withoutCurrency)) {
+      const normalized = withoutCurrency.replace(',', '.');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    const parsed = Number(withoutCurrency);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   const nameIndex = findHeader('nombre del producto');
   const categoryIndex = findHeader('categoria');
   const hoseTypeIndex = findHeader('tipomanguera', 'tipo manguera');
@@ -498,7 +534,7 @@ export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
   const descriptionIndex = findHeader('descripcion tecnica');
   const specsIndex = findHeader('especificaciones', 'especificaciones tecnicas', 'especificaciones (presion / medida / rosca)');
   const refIndex = header.indexOf('id ref');
-  const priceIndex = findHeader('precio de venta metro', 'precio estimado (cop)');
+  const priceIndex = findHeader('precio de venta metro', 'precio estimado (cop)', 'precio de venta por metro', 'precio de venta por metro cop');
   const costPerRollIndex = findHeader('precio de costo rollo');
   const costPerMeterIndex = findHeader('precio de costo metro');
   const imageIndex = findHeader('url imagen', 'imagen url', 'image url', 'imagen');
@@ -521,15 +557,15 @@ export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
         hoseType && `Tipo: ${hoseType}`,
         diameter && `Diámetro: ${diameter} pulgadas`,
       ].filter(Boolean).join(' | ') || 'Sin especificaciones disponibles';
-      const priceText = priceIndex >= 0 ? row[priceIndex] : '';
+      const priceText = priceIndex >= 0 ? row[priceIndex] : row[11] || '';
       const costPerRollText = costPerRollIndex >= 0 ? row[costPerRollIndex] : '';
       const costPerMeterText = costPerMeterIndex >= 0 ? row[costPerMeterIndex] : '';
       const imageUrl = imageIndex >= 0 ? row[imageIndex]?.trim() : '';
       const stockStatus = stockIndex >= 0 ? row[stockIndex] : '';
       const numericId = Number(String(refValue || '').replace(/[^0-9]/g, '')) || index + 1;
-      const cleanPrice = Number(String(priceText || '').replace(/[^0-9]/g, '')) || 0;
-      const cleanCostPerRoll = Number(String(costPerRollText || '').replace(/[^0-9]/g, '')) || 0;
-      const cleanCostPerMeter = Number(String(costPerMeterText || '').replace(/[^0-9]/g, '')) || 0;
+      const cleanPrice = parseNumberValue(priceText);
+      const cleanCostPerRoll = parseNumberValue(costPerRollText);
+      const cleanCostPerMeter = parseNumberValue(costPerMeterText);
 
       return {
         id: numericId,

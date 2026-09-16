@@ -120,7 +120,7 @@ export default function ProductDetailModal({
                   >
                     {hoseDiameters.map((diameter) => (
                       <option key={diameter} value={diameter}>
-                        {diameter}&quot;
+                        {diameter}
                       </option>
                     ))}
                   </select>

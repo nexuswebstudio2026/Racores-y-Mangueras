@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, PackageCheck, ArrowRight } from 'lucide-react';
+import { Search, PackageCheck, ArrowRight, Printer } from 'lucide-react';
 import { fetchProductsFromPublicSheet } from '../services/googleSheetsService';
 import { Product } from '../types';
 
@@ -91,8 +91,41 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
     });
   }, [groupedProducts, searchQuery, selectedCategory]);
 
+  const printableProducts = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    return products.filter((product) => {
+      const matchesCategory = selectedCategory === 'Todos' || product.category === selectedCategory;
+      if (!matchesCategory) return false;
+      if (!normalizedQuery) return true;
+
+      const reference = getReference(product).toLowerCase();
+      const haystack = `${reference} ${product.name} ${product.category} ${product.specs} ${product.hoseType || ''} ${product.diameter || ''}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [products, searchQuery, selectedCategory]);
+
+  const handlePrint = () => window.print();
+
   return (
-    <section className="bg-[#070d18] py-20 md:py-28 border-t border-slate-800/80">
+    <>
+      <style>{`
+        @media print {
+          @page { size: A4 portrait; margin: 12mm; }
+
+          body * { visibility: hidden; }
+          .catalog-print-area, .catalog-print-area * { visibility: visible; }
+          .catalog-print-area { position: absolute; inset: 0; width: 100%; background: white; }
+          .catalog-no-print { display: none !important; }
+          .catalog-print-table th, .catalog-print-table td {
+            border: 1px solid #0f172a !important;
+            color: #0f172a !important;
+            background: #ffffff !important;
+          }
+        }
+      `}</style>
+
+      <section className="bg-[#070d18] py-20 md:py-28 border-t border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-8">
           <div>
@@ -120,7 +153,7 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
           </div>
         )}
 
-        <div className="bg-[#0c1322] rounded-2xl border border-slate-800/80 p-4 md:p-6 mb-8">
+        <div className="bg-[#0c1322] rounded-2xl border border-slate-800/80 p-4 md:p-6 mb-8 catalog-no-print">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <label className="relative block w-full lg:max-w-xl">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -133,9 +166,20 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
               />
             </label>
 
-            <div className="flex items-center gap-2 text-xs text-slate-300 bg-slate-950/80 border border-slate-700 px-3 py-2 rounded-xl whitespace-nowrap">
-              <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-              Fuente: Google Sheets / Inventario oficial
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="inline-flex items-center gap-2 rounded-xl border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500/20 transition-colors"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                Imprimir catálogo
+              </button>
+
+              <div className="flex items-center gap-2 text-xs text-slate-300 bg-slate-950/80 border border-slate-700 px-3 py-2 rounded-xl whitespace-nowrap">
+                <span className="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                Fuente: Google Sheets / Inventario oficial
+              </div>
             </div>
           </div>
 
@@ -157,9 +201,9 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0b1019] shadow-2xl shadow-black/20">
+        <div className="catalog-print-area overflow-hidden rounded-2xl border border-slate-800/90 bg-[#0b1019] shadow-2xl shadow-black/20">
           <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm text-slate-200">
+            <table className="catalog-print-table min-w-full text-left text-sm text-slate-200">
               <thead className="bg-slate-900/90 text-slate-300 uppercase tracking-[0.12em] text-[10px]">
                 <tr>
                   <th className="px-4 py-3">Categoría</th>
@@ -216,6 +260,38 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
         </div>
       </div>
 
+      <div className="catalog-print-area hidden print:block">
+        <div className="mx-auto max-w-6xl px-6 py-8 text-slate-900">
+          <h2 className="mb-4 text-2xl font-black uppercase tracking-wide text-slate-900">Catálogo de productos</h2>
+          <div className="mb-4 text-sm text-slate-700">Tipo de filtro: {selectedCategory}</div>
+          <table className="w-full border-collapse border border-slate-700 text-left text-sm">
+            <thead>
+              <tr className="bg-slate-100 text-slate-900">
+                <th className="border border-slate-700 px-2 py-2">Tipo</th>
+                <th className="border border-slate-700 px-2 py-2">Diámetro</th>
+                <th className="border border-slate-700 px-2 py-2">Referencia</th>
+                <th className="border border-slate-700 px-2 py-2">Descripción técnica</th>
+                <th className="border border-slate-700 px-2 py-2">Precio / metro</th>
+              </tr>
+            </thead>
+            <tbody>
+              {printableProducts.map((product) => (
+                <tr key={`${product.id}-${product.diameter || 'base'}`} className="bg-white text-slate-900">
+                  <td className="border border-slate-700 px-2 py-2">{product.hoseType || product.name}</td>
+                  <td className="border border-slate-700 px-2 py-2">{product.diameter || 'N/A'}</td>
+                  <td className="border border-slate-700 px-2 py-2 font-semibold">{getReference(product)}</td>
+                  <td className="border border-slate-700 px-2 py-2">{product.specs || product.description}</td>
+                  <td className="border border-slate-700 px-2 py-2 font-bold text-amber-700">
+                    {product.salePricePerMeter ? `$${product.salePricePerMeter.toLocaleString('es-CO')} COP` : 'Por cotizar'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
+    </>
   );
 }

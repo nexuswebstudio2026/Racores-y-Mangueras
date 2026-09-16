@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, CheckCircle, PackageCheck, PhoneCall, Plus, ShieldCheck, Tag } from 'lucide-react';
+import { ArrowLeft, CheckCircle, PackageCheck, PhoneCall, Plus, Printer, ShieldCheck, Tag } from 'lucide-react';
 import { fetchProductsFromPublicSheet } from '../services/googleSheetsService';
 import { Product } from '../types';
 
@@ -18,6 +18,30 @@ function normalizeText(value?: string | null) {
     .toUpperCase();
 }
 
+const commonDiameterValues = [
+  0.125, 0.1875, 0.25, 0.3125, 0.375, 0.5, 0.625, 0.75,
+  1, 1.125, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.125, 3.1875, 3.25,
+  4, 4.5, 5, 5.625, 6
+];
+
+function normalizeDiameterNumber(value?: string | null): number {
+  const baseValue = parseInchValue(value);
+  if (!Number.isFinite(baseValue)) return Number.NaN;
+
+  let nearest = baseValue;
+  let smallestDelta = Infinity;
+
+  for (const standardValue of commonDiameterValues) {
+    const delta = Math.abs(baseValue - standardValue);
+    if (delta < smallestDelta) {
+      nearest = standardValue;
+      smallestDelta = delta;
+    }
+  }
+
+  return smallestDelta <= 0.06 ? nearest : baseValue;
+}
+
 function parseInchValue(value?: string | null): number {
   if (!value) return Number.NaN;
 
@@ -28,7 +52,7 @@ function parseInchValue(value?: string | null): number {
     .replace(/"/g, '')
     .replace(/pulgadas?/g, '')
     .replace(/inches?/g, '')
-    .replace(',', '.')
+    .replace(/,/g, '.')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -58,8 +82,8 @@ function parseInchValue(value?: string | null): number {
 }
 
 function sortByInch(a: string, b: string) {
-  const aValue = parseInchValue(a);
-  const bValue = parseInchValue(b);
+  const aValue = normalizeDiameterNumber(a);
+  const bValue = normalizeDiameterNumber(b);
   if (Number.isNaN(aValue) && Number.isNaN(bValue)) return a.localeCompare(b, 'es', { numeric: true });
   if (Number.isNaN(aValue)) return 1;
   if (Number.isNaN(bValue)) return -1;
@@ -67,8 +91,10 @@ function sortByInch(a: string, b: string) {
 }
 
 function diameterMatches(a?: string | null, b?: string | null) {
-  return Number.isFinite(parseInchValue(a)) && Number.isFinite(parseInchValue(b))
-    ? parseInchValue(a) === parseInchValue(b)
+  const aValue = normalizeDiameterNumber(a);
+  const bValue = normalizeDiameterNumber(b);
+  return Number.isFinite(aValue) && Number.isFinite(bValue)
+    ? Math.abs(aValue - bValue) <= 0.06
     : (a ?? '').trim() === (b ?? '').trim();
 }
 
@@ -199,13 +225,36 @@ export default function ProductDetailPage({ productId, onBack, onAddToQuote }: P
   const displaySpecs = selectedVariant.specs || product.specs;
   const displayPrice = selectedVariant.salePricePerMeter ?? product.salePricePerMeter;
   const displayStock = selectedVariant.stockStatus || product.stockStatus;
+  const handlePrint = () => window.print();
 
   return (
-    <section className="min-h-[calc(100vh-120px)] bg-[#070d18] py-10 md:py-16">
+    <>
+      <style>{`
+        @media print {
+          @page { size: A4 portrait; margin: 12mm; }
+
+          body * { visibility: hidden; }
+          .product-print-area, .product-print-area * { visibility: visible; }
+          .product-print-area { position: absolute; inset: 0; width: 100%; background: white; }
+          .product-no-print { display: none !important; }
+        }
+      `}</style>
+
+      <section className="product-print-area min-h-[calc(100vh-120px)] bg-[#070d18] py-10 md:py-16">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-        <button onClick={onBack} className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-amber-400">
-          <ArrowLeft className="w-4 h-4" /> Volver al catálogo
-        </button>
+        <div className="product-no-print mb-8 flex flex-wrap items-center gap-3">
+          <button onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-amber-400">
+            <ArrowLeft className="w-4 h-4" /> Volver al catálogo
+          </button>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 rounded-xl border border-amber-500/60 bg-amber-500/10 px-3 py-2 text-xs font-bold text-amber-400 hover:bg-amber-500/20 transition-colors"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Imprimir
+          </button>
+        </div>
 
         <div className="overflow-hidden rounded-3xl border border-slate-800 bg-[#0c1322] shadow-2xl">
           <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
@@ -257,7 +306,7 @@ export default function ProductDetailPage({ productId, onBack, onAddToQuote }: P
                         onChange={(event) => setSelectedDiameter(event.target.value)}
                         className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 font-mono text-sm text-amber-400"
                       >
-                        {availableDiameters.map((diameter) => <option key={diameter} value={diameter}>{diameter}&quot;</option>)}
+                        {availableDiameters.map((diameter) => <option key={diameter} value={diameter}>{diameter}</option>)}
                       </select>
                     </label>
                   </div>
@@ -283,6 +332,8 @@ export default function ProductDetailPage({ productId, onBack, onAddToQuote }: P
           </div>
         </div>
       </div>
+
     </section>
+    </>
   );
 }
