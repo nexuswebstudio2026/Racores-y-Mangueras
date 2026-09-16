@@ -6,6 +6,7 @@ const hoseTypes = ['R1', 'R2', 'R5', 'R6', 'R12', 'R13', 'R15', 'R115'];
 const hoseDiameters = ['3/16', '1/4', '5/16', '3/8', '1/2', '5/8', '3/4', '1', '1 1/4', '1 1/2', '2'];
 
 function getHoseType(product: Product): string | null {
+  if (product.hoseType) return product.hoseType.toUpperCase();
   const productText = `${product.name} ${product.description} ${product.specs}`;
   const match = productText.match(/\b(R115|R12|R13|R15|R1|R2|R5|R6)\b/i);
   return match ? match[1].toUpperCase() : null;
@@ -29,7 +30,9 @@ export default function ProductDetailModal({
     if (!product) return;
     const detectedType = getHoseType(product);
     setSelectedHoseType(detectedType || hoseTypes[0]);
-    setSelectedDiameter(hoseDiameters[0]);
+    setSelectedDiameter(
+      product.diameter && hoseDiameters.includes(product.diameter) ? product.diameter : hoseDiameters[0]
+    );
   }, [product]);
 
   if (!product) return null;

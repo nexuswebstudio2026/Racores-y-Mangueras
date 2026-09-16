@@ -5,6 +5,9 @@ export interface Product {
   description: string;
   specs: string;
   image: string;
+  hoseType?: string;
+  diameter?: string;
+  stockStatus?: string;
   estimatedPrice?: number;
 }
 

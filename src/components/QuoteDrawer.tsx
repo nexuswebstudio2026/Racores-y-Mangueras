@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { 
   X, 
   Trash2, 
@@ -32,6 +33,17 @@ export default function QuoteDrawer({
   onClearQuote,
   onGoToContact,
 }: QuoteDrawerProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const totalEstimated = items.reduce((acc, item) => {
@@ -64,19 +76,28 @@ export default function QuoteDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/70 backdrop-blur-sm flex justify-end">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex justify-end"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
       <div 
-        className="w-full max-w-lg bg-[#0e121a] border-l border-slate-800 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
+        className="w-full max-w-lg min-h-full max-h-[100dvh] bg-[#0e121a] border-l border-slate-800 flex flex-col shadow-2xl animate-in slide-in-from-right duration-300"
         id="quote-drawer-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quote-drawer-title"
       >
         {/* Header */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-[#131722]">
+        <div className="shrink-0 p-4 sm:p-6 border-b border-slate-800 flex items-center justify-between bg-[#131722]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-heading font-black text-lg text-white">
+              <h3 id="quote-drawer-title" className="font-heading font-black text-lg text-white">
                 Tu Lista de Cotización
               </h3>
               <p className="text-xs text-slate-400">
@@ -95,7 +116,7 @@ export default function QuoteDrawer({
         </div>
 
         {/* Body Items List */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-4">
           {items.length === 0 ? (
             <div className="text-center py-16 space-y-4">
               <div className="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
@@ -198,7 +219,7 @@ export default function QuoteDrawer({
 
         {/* Footer with Actions */}
         {items.length > 0 && (
-          <div className="p-6 border-t border-slate-800 bg-[#131722] space-y-4">
+          <div className="shrink-0 max-h-[42dvh] overflow-y-auto overscroll-contain p-4 sm:p-6 border-t border-slate-800 bg-[#131722] space-y-4">
             {/* Total summary */}
             <div className="flex items-center justify-between">
               <div>

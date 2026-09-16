@@ -484,22 +484,44 @@ export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
 
   if (!rows.length) return [];
 
-  const nameIndex = header.indexOf('nombre del producto');
-  const categoryIndex = header.indexOf('categoria');
-  const descriptionIndex = header.indexOf('descripcion tecnica');
-  const specsIndex = header.indexOf('especificaciones (presion / medida / rosca)');
+  const findHeader = (...names: string[]) => header.findIndex((column) => names.includes(column));
+  const findHeaderOccurrence = (name: string, occurrence: number) =>
+    header.reduce<number[]>((indexes, column, index) => {
+      if (column === name) indexes.push(index);
+      return indexes;
+    }, [])[occurrence] ?? -1;
+
+  const nameIndex = findHeader('nombre del producto');
+  const categoryIndex = findHeader('categoria');
+  const hoseTypeIndex = findHeader('tipomanguera', 'tipo manguera');
+  const firstDiameterIndex = findHeaderOccurrence('diametro', 0);
+  const secondDiameterIndex = findHeaderOccurrence('diametro', 1);
+  const descriptionIndex = findHeader('descripcion tecnica');
+  const specsIndex = findHeader('especificaciones (presion / medida / rosca)');
   const refIndex = header.indexOf('id ref');
   const priceIndex = header.indexOf('precio estimado (cop)');
+  const stockIndex = findHeader('estado / stock');
 
   return rows
     .filter((row) => row && row.length > 2 && row[nameIndex]?.trim())
     .map((row, index) => {
       const refValue = refIndex >= 0 ? row[refIndex] : '';
       const category = categoryIndex >= 0 ? row[categoryIndex] : 'General';
+      const hoseType = hoseTypeIndex >= 0 ? row[hoseTypeIndex] : '';
+      const diameter = firstDiameterIndex >= 0 ? row[firstDiameterIndex] : '';
       const name = nameIndex >= 0 ? row[nameIndex] : `Producto ${index + 1}`;
-      const description = descriptionIndex >= 0 ? row[descriptionIndex] : 'Sin descripción disponible';
-      const specs = specsIndex >= 0 ? row[specsIndex] : 'Sin especificaciones disponibles';
+      const description = descriptionIndex >= 0
+        ? row[descriptionIndex]
+        : hoseType
+          ? `Manguera hidráulica tipo ${hoseType}`
+          : 'Sin descripción disponible';
+      const specs = specsIndex >= 0
+        ? row[specsIndex]
+        : secondDiameterIndex >= 0
+          ? row[secondDiameterIndex]
+          : 'Sin especificaciones disponibles';
       const priceText = priceIndex >= 0 ? row[priceIndex] : '';
+      const stockStatus = stockIndex >= 0 ? row[stockIndex] : '';
       const numericId = Number(String(refValue || '').replace(/[^0-9]/g, '')) || index + 1;
       const cleanPrice = Number(String(priceText || '').replace(/[^0-9]/g, '')) || 0;
 
@@ -509,6 +531,9 @@ export async function fetchProductsFromPublicSheet(): Promise<Product[]> {
         name,
         description,
         specs,
+        hoseType: hoseType || undefined,
+        diameter: diameter || undefined,
+        stockStatus: stockStatus || undefined,
         estimatedPrice: cleanPrice > 0 ? cleanPrice : undefined,
         image: `https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=900&q=80`,
       };
