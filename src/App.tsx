@@ -30,32 +30,6 @@ export default function App() {
 
   useEffect(() => {
     setCurrentAdminUser(getCurrentUser());
-
-    const syncRouteFromUrl = () => {
-      const path = window.location.pathname;
-      if (path === '/Productos') {
-        setCurrentView('catalog');
-        return;
-      }
-      const productMatch = path.match(/^\/Productos\/(\d+)$/);
-      if (productMatch) {
-        setSelectedProductId(Number(productMatch[1]));
-        setCurrentView('product');
-        return;
-      }
-      if (path === '/Contactos') {
-        setCurrentView('contact');
-        return;
-      }
-      if (path === '/Inicio' || path === '/') {
-        setCurrentView('store');
-        return;
-      }
-    };
-
-    syncRouteFromUrl();
-    window.addEventListener('popstate', syncRouteFromUrl);
-    return () => window.removeEventListener('popstate', syncRouteFromUrl);
   }, []);
 
   const handleOpenLogin = () => {
@@ -69,20 +43,17 @@ export default function App() {
 
   const handleNavigateHome = () => {
     setCurrentView('store');
-    window.history.pushState({}, '', '/Inicio');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenCatalogPage = () => {
     setCurrentView('catalog');
-    window.history.pushState({}, '', '/Productos');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleOpenProductPage = (productId: number) => {
     setSelectedProductId(productId);
     setCurrentView('product');
-    window.history.pushState({}, '', `/Productos/${productId}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -92,7 +63,6 @@ export default function App() {
 
   const handleOpenContactPage = () => {
     setCurrentView('contact');
-    window.history.pushState({}, '', '/Contactos');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

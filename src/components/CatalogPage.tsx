@@ -9,6 +9,12 @@ interface CatalogPageProps {
 
 const getReference = (product: Product) => product.reference || `RYM-${String(product.id).padStart(4, '0')}`;
 
+const normalizeGroupKey = (product: Product) => {
+  const hoseType = (product.hoseType || '').trim();
+  if (hoseType) return `type:${hoseType.toUpperCase()}`;
+  return `name:${product.name.trim().toLowerCase()}`;
+};
+
 export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,20 +54,42 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
 
   const categories = ['Todos', ...Array.from(new Set(products.map((product) => product.category)))];
 
+  const groupedProducts = useMemo(() => {
+    const map = new Map<string, Product[]>();
+
+    products.forEach((product) => {
+      const key = normalizeGroupKey(product);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(product);
+    });
+
+    return Array.from(map.entries()).map(([key, group]) => {
+      const representative = group[0];
+      const diameters = Array.from(new Set(group.map((item) => item.diameter).filter(Boolean) as string[]));
+
+      return {
+        key,
+        representative,
+        group,
+        diameters,
+      };
+    });
+  }, [products]);
+
   const filteredProducts = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return products.filter((product) => {
-      const matchesCategory = selectedCategory === 'Todos' || product.category === selectedCategory;
+    return groupedProducts.filter(({ representative, diameters }) => {
+      const matchesCategory = selectedCategory === 'Todos' || representative.category === selectedCategory;
       if (!matchesCategory) return false;
 
       if (!normalizedQuery) return true;
 
-      const reference = getReference(product).toLowerCase();
-      const haystack = `${reference} ${product.name} ${product.category} ${product.specs}`.toLowerCase();
+      const reference = getReference(representative).toLowerCase();
+      const haystack = `${reference} ${representative.name} ${representative.category} ${representative.specs} ${representative.hoseType || ''} ${diameters.join(' ')}`.toLowerCase();
       return haystack.includes(normalizedQuery);
     });
-  }, [products, searchQuery, selectedCategory]);
+  }, [groupedProducts, searchQuery, selectedCategory]);
 
   return (
     <section className="bg-[#070d18] py-20 md:py-28 border-t border-slate-800/80">
@@ -76,13 +104,13 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
               CATÁLOGO DE <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500">PRODUCTOS</span>
             </h1>
             <p className="text-slate-400 text-base sm:text-lg mt-3 max-w-3xl leading-relaxed">
-              Consulta el inventario disponible en la base de datos de Google Sheets, filtrado por referencia, categoría o nombre del artículo.
+              Consulta el inventario disponible en la base de datos de Google Sheets, filtrado por categoría, nombre o tipo de manguera.
             </p>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 px-4 py-3 rounded-xl text-sm text-slate-300 self-start md:self-end">
             <span className="text-amber-400 font-bold font-mono text-xl mr-2">{filteredProducts.length}</span>
-            referencias disponibles
+            productos disponibles
           </div>
         </div>
 
@@ -101,7 +129,7 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
-                placeholder="Buscar por referencia RYM-0001, nombre o especificación..."
+                placeholder="Buscar por nombre, tipo de manguera o especificación..."
               />
             </label>
 
@@ -134,7 +162,6 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
             <table className="min-w-full text-left text-sm text-slate-200">
               <thead className="bg-slate-900/90 text-slate-300 uppercase tracking-[0.12em] text-[10px]">
                 <tr>
-                  <th className="px-4 py-3">Referencia</th>
                   <th className="px-4 py-3">Categoría</th>
                   <th className="px-4 py-3">Producto</th>
                   <th className="px-4 py-3">Especificación</th>
@@ -144,45 +171,41 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
               </thead>
               <tbody>
                 {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => {
-                    const reference = getReference(product);
-                    return (
-                      <tr key={product.id} className="border-t border-slate-800 hover:bg-slate-900/60 transition-colors">
-                        <td className="px-4 py-3 font-mono font-bold text-[#ffd200] whitespace-nowrap">{reference}</td>
-                        <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{product.category}</td>
-                        <td className="px-4 py-3">
-                          <div className="font-semibold text-white">{product.name}</div>
-                        </td>
-                        <td className="px-4 py-3 text-slate-300 max-w-[420px]">
-                          {[product.hoseType && `Tipo: ${product.hoseType}`, product.diameter && `Diámetro: ${product.diameter}"`, product.specs]
-                            .filter(Boolean)
-                            .join(' | ')}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap font-mono font-bold text-amber-400">
-                          {product.salePricePerMeter
-                            ? `$${product.salePricePerMeter.toLocaleString('es-CO')} COP`
-                            : 'Por cotizar'}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => onOpenProduct(product.id)}
-                            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold bg-[#ffd200] text-slate-950 hover:bg-[#ffe259] border border-[#ffd200]"
-                          >
-                            Ver más
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
+                  filteredProducts.map(({ representative, diameters, group }) => (
+                    <tr key={representative.id} className="border-t border-slate-800 hover:bg-slate-900/60 transition-colors">
+                      <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{representative.category}</td>
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-white">{representative.name}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-300 max-w-[420px]">
+                        {[representative.hoseType && `Tipo: ${representative.hoseType}`, diameters.length > 0 && `Diámetros: ${diameters.join(', ')}`, representative.specs]
+                          .filter(Boolean)
+                          .join(' | ')}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap font-mono font-bold text-amber-400">
+                        {group.some((item) => item.salePricePerMeter)
+                          ? `$${Math.min(...group.map((item) => item.salePricePerMeter ?? Number.MAX_SAFE_INTEGER)).toLocaleString('es-CO')} COP`
+                          : 'Por cotizar'}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => onOpenProduct(representative.id)}
+                          className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold bg-[#ffd200] text-slate-950 hover:bg-[#ffe259] border border-[#ffd200]"
+                        >
+                          Ver más
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
+                    <td colSpan={5} className="px-4 py-12 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-3">
                         <Search className="w-8 h-8 text-slate-500" />
-                        <p className="text-base font-medium">No se encontraron referencias con ese filtro.</p>
-                        <p className="text-sm text-slate-500">Prueba con otra referencia o limpia la búsqueda.</p>
+                        <p className="text-base font-medium">No se encontraron productos con ese filtro.</p>
+                        <p className="text-sm text-slate-500">Prueba con otro nombre o limpia la búsqueda.</p>
                       </div>
                     </td>
                   </tr>
