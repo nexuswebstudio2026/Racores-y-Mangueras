@@ -18,6 +18,20 @@ function normalizeText(value?: string | null) {
     .toUpperCase();
 }
 
+const formatPriceDisplay = (value?: number, hoseType?: string) => {
+  if (value === undefined || value === null || Number.isNaN(value)) return 'Por cotizar';
+
+  const normalizedType = (hoseType || '').toUpperCase();
+
+  let roundedValue = Math.round(Number(value));
+
+  if (normalizedType.includes('R1')) {
+    roundedValue = Math.round(Math.ceil(value / 0.05) * 0.05);
+  }
+
+  return roundedValue.toLocaleString('es-CO');
+};
+
 const commonDiameterValues = [
   0.125, 0.1875, 0.25, 0.3125, 0.375, 0.5, 0.625, 0.75,
   1, 1.125, 1.25, 1.5, 1.75, 2, 2.5, 3, 3.125, 3.1875, 3.25,
@@ -272,7 +286,7 @@ export default function ProductDetailPage({ productId, onBack, onAddToQuote }: P
                 <span className="block text-xs uppercase tracking-wider text-slate-400">Precio de venta por metro</span>
                 <span className="font-mono text-2xl font-black text-amber-400">
                   {displayPrice
-                    ? `$${displayPrice.toLocaleString('es-CO')} COP`
+                    ? `$${formatPriceDisplay(displayPrice, selectedVariant.hoseType || product.hoseType)} COP`
                     : 'Por cotizar'}
                 </span>
               </div>
@@ -285,7 +299,7 @@ export default function ProductDetailPage({ productId, onBack, onAddToQuote }: P
                 </div>
                 <p className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-sm text-slate-200">{displaySpecs}</p>
                 {displayPrice && (
-                  <p className="text-sm font-bold text-amber-400">Precio de venta por metro: ${displayPrice.toLocaleString('es-CO')} COP</p>
+                  <p className="text-sm font-bold text-amber-400">Precio de venta por metro: ${formatPriceDisplay(displayPrice, selectedVariant.hoseType || product.hoseType)} COP</p>
                 )}
                 {isHose && (
                   <div className="grid gap-4 sm:grid-cols-2">

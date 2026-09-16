@@ -9,6 +9,20 @@ interface CatalogPageProps {
 
 const getReference = (product: Product) => product.reference || `RYM-${String(product.id).padStart(4, '0')}`;
 
+const formatPriceDisplay = (value?: number, hoseType?: string) => {
+  if (value === undefined || value === null || Number.isNaN(value)) return 'Por cotizar';
+
+  const normalizedType = (hoseType || '').toUpperCase();
+
+  let roundedValue = Math.round(Number(value));
+
+  if (normalizedType.includes('R1')) {
+    roundedValue = Math.round(Math.ceil(value / 0.05) * 0.05);
+  }
+
+  return roundedValue.toLocaleString('es-CO');
+};
+
 const normalizeGroupKey = (product: Product) => {
   const hoseType = (product.hoseType || '').trim();
   if (hoseType) return `type:${hoseType.toUpperCase()}`;
@@ -228,7 +242,7 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap font-mono font-bold text-amber-400">
                         {group.some((item) => item.salePricePerMeter)
-                          ? `$${Math.min(...group.map((item) => item.salePricePerMeter ?? Number.MAX_SAFE_INTEGER)).toLocaleString('es-CO')} COP`
+                          ? `$${formatPriceDisplay(Math.min(...group.map((item) => item.salePricePerMeter ?? Number.MAX_SAFE_INTEGER)), representative.hoseType)} COP`
                           : 'Por cotizar'}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -282,7 +296,7 @@ export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
                   <td className="border border-slate-700 px-2 py-2 font-semibold">{getReference(product)}</td>
                   <td className="border border-slate-700 px-2 py-2">{product.specs || product.description}</td>
                   <td className="border border-slate-700 px-2 py-2 font-bold text-amber-700">
-                    {product.salePricePerMeter ? `$${product.salePricePerMeter.toLocaleString('es-CO')} COP` : 'Por cotizar'}
+                    {product.salePricePerMeter ? `$${formatPriceDisplay(product.salePricePerMeter, product.hoseType)} COP` : 'Por cotizar'}
                   </td>
                 </tr>
               ))}
