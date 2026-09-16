@@ -12,7 +12,14 @@ import {
   ShieldCheck,
   AlertCircle,
   FileSpreadsheet,
-  ExternalLink
+  ExternalLink,
+  MessageCircle,
+  Facebook,
+  Instagram,
+  Twitter,
+  Music2,
+  AtSign,
+  Youtube
 } from 'lucide-react';
 import { companyInfo } from '../data/companyData';
 import { QuoteCartItem, CustomerQuoteRecord } from '../types';
@@ -45,6 +52,16 @@ export default function Contact({
   const [savedToSheets, setSavedToSheets] = useState(false);
   const [savingToSheets, setSavingToSheets] = useState(false);
   const [storedDb, setStoredDb] = useState(getStoredSpreadsheet());
+
+  const socialLinks = [
+    { name: 'WhatsApp', href: 'https://wa.me/573154781702', icon: MessageCircle, accent: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
+    { name: 'Facebook', href: 'https://www.facebook.com/', icon: Facebook, accent: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
+    { name: 'Instagram', href: 'https://www.instagram.com/', icon: Instagram, accent: 'bg-pink-500/10 text-pink-400 border-pink-500/30' },
+    { name: 'X', href: 'https://x.com/', icon: Twitter, accent: 'bg-slate-500/10 text-slate-200 border-slate-500/30' },
+    { name: 'TikTok', href: 'https://www.tiktok.com/', icon: Music2, accent: 'bg-slate-900/80 text-white border-slate-600' },
+    { name: 'Threads', href: 'https://www.threads.net/', icon: AtSign, accent: 'bg-violet-500/10 text-violet-400 border-violet-500/30' },
+    { name: 'YouTube', href: 'https://www.youtube.com/', icon: Youtube, accent: 'bg-red-500/10 text-red-400 border-red-500/30' },
+  ];
 
   useEffect(() => {
     setStoredDb(getStoredSpreadsheet());
@@ -117,7 +134,7 @@ export default function Contact({
   };
 
   return (
-    <section id="contacto" className="py-20 md:py-28 bg-[#090c12] border-t border-slate-800/80 relative">
+    <section id="contactos-redes" className="py-20 md:py-28 bg-[#090c12] border-t border-slate-800/80 relative">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -143,6 +160,21 @@ export default function Contact({
               <h3 className="font-heading font-bold text-xl text-white pb-4 border-b border-slate-800">
                 Información de Contacto
               </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {socialLinks.map(({ name, href, icon: Icon, accent }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all hover:-translate-y-0.5 hover:shadow-lg ${accent}`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{name}</span>
+                  </a>
+                ))}
+              </div>
 
               {/* Address */}
               <div className="flex items-start gap-4">

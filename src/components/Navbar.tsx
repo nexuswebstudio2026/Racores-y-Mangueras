@@ -23,15 +23,17 @@ interface NavbarProps {
   onOpenGoogleSheets?: () => void;
   onOpenAdmin?: () => void;
   currentAdminUser?: AdminUser | null;
-  currentView?: 'store' | 'login' | 'admin';
+  currentView?: 'store' | 'login' | 'admin' | 'catalog' | 'contact';
   onNavigateHome?: () => void;
   onNavigateLogin?: () => void;
+  onOpenCatalog?: () => void;
+  onOpenContact?: () => void;
 }
 
 const navLinks = [
-  { label: 'Inicio', href: '#inicio' },
-  { label: 'Productos', href: '#productos' },
-  { label: 'Contactos', href: '#contacto' },
+  { label: 'Inicio', href: '/Inicio' },
+  { label: 'Catálogo de productos', href: '/Productos' },
+  { label: 'Contactos y redes sociales', href: '/Contactos' },
 ];
 
 export default function Navbar({ 
@@ -43,6 +45,8 @@ export default function Navbar({
   currentView = 'store',
   onNavigateHome,
   onNavigateLogin,
+  onOpenCatalog,
+  onOpenContact,
 }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -74,6 +78,22 @@ export default function Navbar({
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
     setMobileOpen(false);
+
+    if (href === '/Inicio') {
+      onNavigateHome?.();
+      return;
+    }
+
+    if (href === '/Productos') {
+      onOpenCatalog?.();
+      return;
+    }
+
+    if (href === '/Contactos') {
+      onOpenContact?.();
+      return;
+    }
+
     if ((currentView === 'admin' || currentView === 'login') && onNavigateHome) {
       onNavigateHome();
       setTimeout(() => {
@@ -142,8 +162,8 @@ export default function Navbar({
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
           {/* Brand Logo & Tagline */}
           <a 
-            href="#inicio" 
-            onClick={(e) => handleNavClick(e, '#inicio')} 
+            href="/Inicio" 
+            onClick={(e) => handleNavClick(e, '/Inicio')} 
             className="flex items-center group cursor-pointer"
             id="brand-logo"
             aria-label="Racores y Mangueras de Nariño - Calidad y Servicio"

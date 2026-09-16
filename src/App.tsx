@@ -15,6 +15,7 @@ import FloatingWhatsApp from './components/FloatingWhatsApp';
 import GoogleSheetsModal from './components/GoogleSheetsModal';
 import LoginPage from './components/LoginPage';
 import AdminPanelModal from './components/AdminPanelModal';
+import CatalogPage from './components/CatalogPage';
 import { Product, QuoteCartItem, AdminUser } from './types';
 import { getCurrentUser, logoutAdminUser } from './services/userService';
 import { Check } from 'lucide-react';
@@ -24,11 +25,31 @@ export default function App() {
   const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [isSheetsOpen, setIsSheetsOpen] = useState(false);
   const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser | null>(null);
-  const [currentView, setCurrentView] = useState<'store' | 'login' | 'admin'>('store');
+  const [currentView, setCurrentView] = useState<'store' | 'login' | 'admin' | 'catalog' | 'contact'>('store');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setCurrentAdminUser(getCurrentUser());
+
+    const syncRouteFromUrl = () => {
+      const path = window.location.pathname;
+      if (path === '/Productos') {
+        setCurrentView('catalog');
+        return;
+      }
+      if (path === '/Contactos') {
+        setCurrentView('contact');
+        return;
+      }
+      if (path === '/Inicio' || path === '/') {
+        setCurrentView('store');
+        return;
+      }
+    };
+
+    syncRouteFromUrl();
+    window.addEventListener('popstate', syncRouteFromUrl);
+    return () => window.removeEventListener('popstate', syncRouteFromUrl);
   }, []);
 
   const handleOpenLogin = () => {
@@ -42,6 +63,19 @@ export default function App() {
 
   const handleNavigateHome = () => {
     setCurrentView('store');
+    window.history.pushState({}, '', '/Inicio');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenCatalogPage = () => {
+    setCurrentView('catalog');
+    window.history.pushState({}, '', '/Productos');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenContactPage = () => {
+    setCurrentView('contact');
+    window.history.pushState({}, '', '/Contactos');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -106,16 +140,8 @@ export default function App() {
   };
 
   const handleScrollToCatalog = () => {
-    if (currentView !== 'store') {
-      setCurrentView('store');
-      setTimeout(() => {
-        const el = document.querySelector('#productos') || document.querySelector('#catalogo');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    } else {
-      const el = document.querySelector('#productos') || document.querySelector('#catalogo');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+    setCurrentView('catalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleScrollToContact = () => {
@@ -161,11 +187,25 @@ export default function App() {
         currentView={currentView}
         onNavigateHome={handleNavigateHome}
         onNavigateLogin={handleOpenLogin}
+        onOpenCatalog={handleOpenCatalogPage}
+        onOpenContact={handleOpenContactPage}
       />
 
       {/* Main Content View (In-Page) */}
       <main className="flex-1">
-        {currentView === 'login' ? (
+        {currentView === 'catalog' ? (
+          <CatalogPage
+            onAddToQuote={handleAddToQuote}
+            quotedProductIds={quotedProductIds}
+          />
+        ) : currentView === 'contact' ? (
+          <Contact
+            quoteItems={quoteItems}
+            onRemoveQuoteItem={handleRemoveQuoteItem}
+            onClearQuote={handleClearQuote}
+            onOpenGoogleSheets={() => setIsSheetsOpen(true)}
+          />
+        ) : currentView === 'login' ? (
           <LoginPage
             onLoginSuccess={handleLoginSuccess}
             onBackToHome={handleNavigateHome}
