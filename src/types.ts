@@ -1,5 +1,6 @@
 export interface Product {
   id: number;
+  reference?: string;
   category: string;
   name: string;
   description: string;
@@ -9,6 +10,9 @@ export interface Product {
   diameter?: string;
   stockStatus?: string;
   estimatedPrice?: number;
+  costPerRoll?: number;
+  costPerMeter?: number;
+  salePricePerMeter?: number;
 }
 
 export interface HoseType {

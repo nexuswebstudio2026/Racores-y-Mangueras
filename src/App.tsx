@@ -10,22 +10,22 @@ import Sectores from './components/Sectors';
 import Testimonials from './components/Testimonials';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
-import QuoteDrawer from './components/QuoteDrawer';
 import FloatingWhatsApp from './components/FloatingWhatsApp';
 import GoogleSheetsModal from './components/GoogleSheetsModal';
 import LoginPage from './components/LoginPage';
 import AdminPanelModal from './components/AdminPanelModal';
 import CatalogPage from './components/CatalogPage';
+import ProductDetailPage from './components/ProductDetailPage';
 import { Product, QuoteCartItem, AdminUser } from './types';
 import { getCurrentUser, logoutAdminUser } from './services/userService';
 import { Check } from 'lucide-react';
 
 export default function App() {
   const [quoteItems, setQuoteItems] = useState<QuoteCartItem[]>([]);
-  const [isQuoteOpen, setIsQuoteOpen] = useState(false);
   const [isSheetsOpen, setIsSheetsOpen] = useState(false);
   const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser | null>(null);
-  const [currentView, setCurrentView] = useState<'store' | 'login' | 'admin' | 'catalog' | 'contact'>('store');
+  const [currentView, setCurrentView] = useState<'store' | 'login' | 'admin' | 'catalog' | 'contact' | 'product'>('store');
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,6 +35,12 @@ export default function App() {
       const path = window.location.pathname;
       if (path === '/Productos') {
         setCurrentView('catalog');
+        return;
+      }
+      const productMatch = path.match(/^\/Productos\/(\d+)$/);
+      if (productMatch) {
+        setSelectedProductId(Number(productMatch[1]));
+        setCurrentView('product');
         return;
       }
       if (path === '/Contactos') {
@@ -71,6 +77,17 @@ export default function App() {
     setCurrentView('catalog');
     window.history.pushState({}, '', '/Productos');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenProductPage = (productId: number) => {
+    setSelectedProductId(productId);
+    setCurrentView('product');
+    window.history.pushState({}, '', `/Productos/${productId}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToCatalog = () => {
+    handleOpenCatalogPage();
   };
 
   const handleOpenContactPage = () => {
@@ -168,19 +185,12 @@ export default function App() {
             <Check className="w-3.5 h-3.5" />
           </div>
           <span>{toastMessage}</span>
-          <button
-            onClick={() => setIsQuoteOpen(true)}
-            className="ml-2 underline text-[#ffd200] hover:text-[#ffe259] font-bold"
-          >
-            Ver
-          </button>
         </div>
       )}
 
       {/* Navigation */}
       <Navbar
         quoteItems={quoteItems}
-        onOpenQuote={() => setIsQuoteOpen(true)}
         onOpenGoogleSheets={() => setIsSheetsOpen(true)}
         onOpenAdmin={handleOpenLogin}
         currentAdminUser={currentAdminUser}
@@ -195,8 +205,13 @@ export default function App() {
       <main className="flex-1">
         {currentView === 'catalog' ? (
           <CatalogPage
+            onOpenProduct={handleOpenProductPage}
+          />
+        ) : currentView === 'product' && selectedProductId !== null ? (
+          <ProductDetailPage
+            productId={selectedProductId}
+            onBack={handleBackToCatalog}
             onAddToQuote={handleAddToQuote}
-            quotedProductIds={quotedProductIds}
           />
         ) : currentView === 'contact' ? (
           <Contact
@@ -233,7 +248,6 @@ export default function App() {
           <>
             <Hero
               onExploreCatalog={handleScrollToCatalog}
-              onOpenQuote={() => setIsQuoteOpen(true)}
             />
             <About />
             <MissionVision />
@@ -262,17 +276,6 @@ export default function App() {
       <Footer 
         onOpenGoogleSheets={() => setIsSheetsOpen(true)} 
         onOpenAdmin={handleOpenLogin}
-      />
-
-      {/* Interactive Quote Drawer */}
-      <QuoteDrawer
-        isOpen={isQuoteOpen}
-        onClose={() => setIsQuoteOpen(false)}
-        items={quoteItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveQuoteItem}
-        onClearQuote={handleClearQuote}
-        onGoToContact={handleScrollToContact}
       />
 
       {/* Google Sheets Management Modal */}

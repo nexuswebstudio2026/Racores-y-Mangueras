@@ -4,7 +4,6 @@ import Logo from './Logo';
 
 interface HeroProps {
   onExploreCatalog: () => void;
-  onOpenQuote: () => void;
 }
 
 export default function Hero({ onExploreCatalog }: HeroProps) {

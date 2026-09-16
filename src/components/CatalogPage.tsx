@@ -1,22 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Search, PackageCheck, ShoppingCart } from 'lucide-react';
+import { Search, PackageCheck, ArrowRight } from 'lucide-react';
 import { fetchProductsFromPublicSheet } from '../services/googleSheetsService';
 import { Product } from '../types';
-import ProductDetailModal from './ProductDetailModal';
 
 interface CatalogPageProps {
-  onAddToQuote: (product: Product) => void;
-  quotedProductIds: number[];
+  onOpenProduct: (productId: number) => void;
 }
 
-const getReference = (product: Product) => `RYM-${String(product.id).padStart(4, '0')}`;
+const getReference = (product: Product) => product.reference || `RYM-${String(product.id).padStart(4, '0')}`;
 
-export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogPageProps) {
+export default function CatalogPage({ onOpenProduct }: CatalogPageProps) {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -141,6 +138,7 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
                   <th className="px-4 py-3">Categoría</th>
                   <th className="px-4 py-3">Producto</th>
                   <th className="px-4 py-3">Especificación</th>
+                  <th className="px-4 py-3">Precio / metro</th>
                   <th className="px-4 py-3 text-right">Acción</th>
                 </tr>
               </thead>
@@ -148,8 +146,6 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
                 {filteredProducts.length > 0 ? (
                   filteredProducts.map((product) => {
                     const reference = getReference(product);
-                    const isQuoted = quotedProductIds.includes(product.id);
-
                     return (
                       <tr key={product.id} className="border-t border-slate-800 hover:bg-slate-900/60 transition-colors">
                         <td className="px-4 py-3 font-mono font-bold text-[#ffd200] whitespace-nowrap">{reference}</td>
@@ -158,20 +154,23 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
                           <div className="font-semibold text-white">{product.name}</div>
                         </td>
                         <td className="px-4 py-3 text-slate-300 max-w-[420px]">
-                          {product.specs}
+                          {[product.hoseType && `Tipo: ${product.hoseType}`, product.diameter && `Diámetro: ${product.diameter}"`, product.specs]
+                            .filter(Boolean)
+                            .join(' | ')}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap font-mono font-bold text-amber-400">
+                          {product.salePricePerMeter
+                            ? `$${product.salePricePerMeter.toLocaleString('es-CO')} COP`
+                            : 'Por cotizar'}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
-                            onClick={() => setSelectedProduct(product)}
-                            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
-                              isQuoted
-                                ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25'
-                                : 'bg-[#ffd200] text-slate-950 hover:bg-[#ffe259] border border-[#ffd200]'
-                            }`}
+                            onClick={() => onOpenProduct(product.id)}
+                            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold bg-[#ffd200] text-slate-950 hover:bg-[#ffe259] border border-[#ffd200]"
                           >
-                            {isQuoted ? 'En cotización' : 'Agregar'}
-                            <ShoppingCart className="w-3.5 h-3.5" />
+                            Ver más
+                            <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </td>
                       </tr>
@@ -179,7 +178,7 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
                   })
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-4 py-12 text-center text-slate-400">
+                    <td colSpan={6} className="px-4 py-12 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-3">
                         <Search className="w-8 h-8 text-slate-500" />
                         <p className="text-base font-medium">No se encontraron referencias con ese filtro.</p>
@@ -194,11 +193,6 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
         </div>
       </div>
 
-      <ProductDetailModal
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToQuote={onAddToQuote}
-      />
     </section>
   );
 }
