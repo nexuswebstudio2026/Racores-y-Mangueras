@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search, PackageCheck, ShoppingCart } from 'lucide-react';
 import { fetchProductsFromPublicSheet } from '../services/googleSheetsService';
 import { Product } from '../types';
+import ProductDetailModal from './ProductDetailModal';
 
 interface CatalogPageProps {
   onAddToQuote: (product: Product) => void;
@@ -15,6 +16,7 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,7 +163,7 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
                         <td className="px-4 py-3 text-right">
                           <button
                             type="button"
-                            onClick={() => onAddToQuote(product)}
+                            onClick={() => setSelectedProduct(product)}
                             className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                               isQuoted
                                 ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25'
@@ -191,6 +193,12 @@ export default function CatalogPage({ onAddToQuote, quotedProductIds }: CatalogP
           </div>
         </div>
       </div>
+
+      <ProductDetailModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToQuote={onAddToQuote}
+      />
     </section>
   );
 }

@@ -1,5 +1,15 @@
+import { useEffect, useState } from 'react';
 import { Product } from '../types';
 import { X, CheckCircle, Plus, PhoneCall, ShieldCheck, Tag } from 'lucide-react';
+
+const hoseTypes = ['R1', 'R2', 'R5', 'R6', 'R12', 'R13', 'R15', 'R115'];
+const hoseDiameters = ['3/16', '1/4', '5/16', '3/8', '1/2', '5/8', '3/4', '1', '1 1/4', '1 1/2', '2'];
+
+function getHoseType(product: Product): string | null {
+  const productText = `${product.name} ${product.description} ${product.specs}`;
+  const match = productText.match(/\b(R115|R12|R13|R15|R1|R2|R5|R6)\b/i);
+  return match ? match[1].toUpperCase() : null;
+}
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -12,7 +22,19 @@ export default function ProductDetailModal({
   onClose,
   onAddToQuote,
 }: ProductDetailModalProps) {
+  const [selectedHoseType, setSelectedHoseType] = useState(hoseTypes[0]);
+  const [selectedDiameter, setSelectedDiameter] = useState(hoseDiameters[0]);
+
+  useEffect(() => {
+    if (!product) return;
+    const detectedType = getHoseType(product);
+    setSelectedHoseType(detectedType || hoseTypes[0]);
+    setSelectedDiameter(hoseDiameters[0]);
+  }, [product]);
+
   if (!product) return null;
+
+  const isHose = product.category.toLowerCase().includes('manguera');
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -65,6 +87,43 @@ export default function ProductDetailModal({
             <p className="text-sm font-mono text-slate-200 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
               {product.specs}
             </p>
+            {isHose && (
+              <div className="border-t border-slate-800 pt-3 space-y-3">
+                <label className="block">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Tipo de manguera
+                  </span>
+                  <select
+                    value={selectedHoseType}
+                    onChange={(event) => setSelectedHoseType(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm font-mono font-bold text-amber-400 outline-none focus:border-amber-400"
+                  >
+                    {hoseTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Diámetro (pulgadas)
+                  </span>
+                  <select
+                    value={selectedDiameter}
+                    onChange={(event) => setSelectedDiameter(event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm font-mono font-bold text-amber-400 outline-none focus:border-amber-400"
+                  >
+                    {hoseDiameters.map((diameter) => (
+                      <option key={diameter} value={diameter}>
+                        {diameter}&quot;
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            )}
             <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
               <span className="flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
